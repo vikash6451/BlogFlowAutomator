@@ -206,6 +206,7 @@ if st.button("🚀 Analyze Blog Posts", type="primary"):
                         markdown_lines.append("")
                         markdown_lines.append(f"**Source:** [{post['title']}]({post['url']})")
                         markdown_lines.append("")
+                        
                         markdown_lines.append(f"#### Summary")
                         markdown_lines.append(post['summary'])
                         markdown_lines.append("")
@@ -217,10 +218,45 @@ if st.button("🚀 Analyze Blog Posts", type="primary"):
                             markdown_lines.append("")
                         
                         if post.get('examples') and any(post['examples']):
-                            markdown_lines.append("#### Real-World Examples & Applications")
+                            markdown_lines.append("#### Real-World Examples")
                             for example in post['examples']:
                                 if example:
                                     markdown_lines.append(f"- {example}")
+                            markdown_lines.append("")
+                        
+                        if post.get('central_takeaways') and any(post['central_takeaways']):
+                            markdown_lines.append("#### 💡 Central Takeaways")
+                            for takeaway in post['central_takeaways']:
+                                if takeaway:
+                                    markdown_lines.append(f"- {takeaway}")
+                            markdown_lines.append("")
+                        
+                        if post.get('contrarian_takeaways') and any(post['contrarian_takeaways']):
+                            markdown_lines.append("#### 🔄 Contrarian Insights")
+                            for takeaway in post['contrarian_takeaways']:
+                                if takeaway:
+                                    markdown_lines.append(f"- {takeaway}")
+                            markdown_lines.append("")
+                        
+                        if post.get('unstated_assumptions') and any(post['unstated_assumptions']):
+                            markdown_lines.append("#### 🤔 Unstated Assumptions")
+                            for assumption in post['unstated_assumptions']:
+                                if assumption:
+                                    markdown_lines.append(f"- {assumption}")
+                            markdown_lines.append("")
+                        
+                        if post.get('potential_experiments') and any(post['potential_experiments']):
+                            markdown_lines.append("#### 🧪 Potential Experiments")
+                            for experiment in post['potential_experiments']:
+                                if experiment:
+                                    markdown_lines.append(f"- {experiment}")
+                            markdown_lines.append("")
+                        
+                        if post.get('industry_applications') and any(post['industry_applications']):
+                            markdown_lines.append("#### 🏭 Industry Applications")
+                            for application in post['industry_applications']:
+                                if application:
+                                    markdown_lines.append(f"- {application}")
                             markdown_lines.append("")
                         
                         markdown_lines.append("")
@@ -276,6 +312,7 @@ if st.button("🚀 Analyze Blog Posts", type="primary"):
                         markdown_lines.append("")
                         markdown_lines.append(f"**Source:** [{post['title']}]({post['url']})")
                         markdown_lines.append("")
+                        
                         markdown_lines.append(f"#### Summary")
                         markdown_lines.append(post['summary'])
                         markdown_lines.append("")
@@ -287,10 +324,45 @@ if st.button("🚀 Analyze Blog Posts", type="primary"):
                             markdown_lines.append("")
                         
                         if post.get('examples') and any(post['examples']):
-                            markdown_lines.append("#### Real-World Examples & Applications")
+                            markdown_lines.append("#### Real-World Examples")
                             for example in post['examples']:
                                 if example:
                                     markdown_lines.append(f"- {example}")
+                            markdown_lines.append("")
+                        
+                        if post.get('central_takeaways') and any(post['central_takeaways']):
+                            markdown_lines.append("#### 💡 Central Takeaways")
+                            for takeaway in post['central_takeaways']:
+                                if takeaway:
+                                    markdown_lines.append(f"- {takeaway}")
+                            markdown_lines.append("")
+                        
+                        if post.get('contrarian_takeaways') and any(post['contrarian_takeaways']):
+                            markdown_lines.append("#### 🔄 Contrarian Insights")
+                            for takeaway in post['contrarian_takeaways']:
+                                if takeaway:
+                                    markdown_lines.append(f"- {takeaway}")
+                            markdown_lines.append("")
+                        
+                        if post.get('unstated_assumptions') and any(post['unstated_assumptions']):
+                            markdown_lines.append("#### 🤔 Unstated Assumptions")
+                            for assumption in post['unstated_assumptions']:
+                                if assumption:
+                                    markdown_lines.append(f"- {assumption}")
+                            markdown_lines.append("")
+                        
+                        if post.get('potential_experiments') and any(post['potential_experiments']):
+                            markdown_lines.append("#### 🧪 Potential Experiments")
+                            for experiment in post['potential_experiments']:
+                                if experiment:
+                                    markdown_lines.append(f"- {experiment}")
+                            markdown_lines.append("")
+                        
+                        if post.get('industry_applications') and any(post['industry_applications']):
+                            markdown_lines.append("#### 🏭 Industry Applications")
+                            for application in post['industry_applications']:
+                                if application:
+                                    markdown_lines.append(f"- {application}")
                             markdown_lines.append("")
                         
                         markdown_lines.append("")
@@ -367,6 +439,41 @@ if st.session_state.processed_data:
                             if example:
                                 st.markdown(f"- {example}")
                     
+                    with st.expander("💡 Deep Insights for Brainstorming"):
+                        if post.get('central_takeaways') and any(post['central_takeaways']):
+                            st.markdown("**💡 Central Takeaways:**")
+                            for takeaway in post['central_takeaways']:
+                                if takeaway:
+                                    st.markdown(f"- {takeaway}")
+                            st.write("")
+                        
+                        if post.get('contrarian_takeaways') and any(post['contrarian_takeaways']):
+                            st.markdown("**🔄 Contrarian Insights:**")
+                            for takeaway in post['contrarian_takeaways']:
+                                if takeaway:
+                                    st.markdown(f"- {takeaway}")
+                            st.write("")
+                        
+                        if post.get('unstated_assumptions') and any(post['unstated_assumptions']):
+                            st.markdown("**🤔 Unstated Assumptions:**")
+                            for assumption in post['unstated_assumptions']:
+                                if assumption:
+                                    st.markdown(f"- {assumption}")
+                            st.write("")
+                        
+                        if post.get('potential_experiments') and any(post['potential_experiments']):
+                            st.markdown("**🧪 Potential Experiments:**")
+                            for experiment in post['potential_experiments']:
+                                if experiment:
+                                    st.markdown(f"- {experiment}")
+                            st.write("")
+                        
+                        if post.get('industry_applications') and any(post['industry_applications']):
+                            st.markdown("**🏭 Industry Applications:**")
+                            for application in post['industry_applications']:
+                                if application:
+                                    st.markdown(f"- {application}")
+                    
                     st.divider()
     else:
         categories = {}
@@ -401,6 +508,41 @@ if st.session_state.processed_data:
                         for example in post['examples']:
                             if example:
                                 st.markdown(f"- {example}")
+                    
+                    with st.expander("💡 Deep Insights for Brainstorming"):
+                        if post.get('central_takeaways') and any(post['central_takeaways']):
+                            st.markdown("**💡 Central Takeaways:**")
+                            for takeaway in post['central_takeaways']:
+                                if takeaway:
+                                    st.markdown(f"- {takeaway}")
+                            st.write("")
+                        
+                        if post.get('contrarian_takeaways') and any(post['contrarian_takeaways']):
+                            st.markdown("**🔄 Contrarian Insights:**")
+                            for takeaway in post['contrarian_takeaways']:
+                                if takeaway:
+                                    st.markdown(f"- {takeaway}")
+                            st.write("")
+                        
+                        if post.get('unstated_assumptions') and any(post['unstated_assumptions']):
+                            st.markdown("**🤔 Unstated Assumptions:**")
+                            for assumption in post['unstated_assumptions']:
+                                if assumption:
+                                    st.markdown(f"- {assumption}")
+                            st.write("")
+                        
+                        if post.get('potential_experiments') and any(post['potential_experiments']):
+                            st.markdown("**🧪 Potential Experiments:**")
+                            for experiment in post['potential_experiments']:
+                                if experiment:
+                                    st.markdown(f"- {experiment}")
+                            st.write("")
+                        
+                        if post.get('industry_applications') and any(post['industry_applications']):
+                            st.markdown("**🏭 Industry Applications:**")
+                            for application in post['industry_applications']:
+                                if application:
+                                    st.markdown(f"- {application}")
                     
                     st.divider()
     

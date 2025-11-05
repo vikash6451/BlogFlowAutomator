@@ -25,6 +25,63 @@ def is_rate_limit_error(exception: BaseException) -> bool:
     )
 
 
+def extract_deep_insights(content: str, title: str) -> Dict:
+    @retry(
+        stop=stop_after_attempt(7),
+        wait=wait_exponential(multiplier=1, min=2, max=128),
+        retry=retry_if_exception(is_rate_limit_error),
+        reraise=True
+    )
+    def process_with_retry():
+        prompt = f"""Analyze this blog post and extract deep insights for brainstorming and strategic thinking:
+
+1. Key Central Takeaways: What are the 3-5 most important ideas that someone should remember from this article?
+2. Contrarian Takeaways: What are 3-5 contrarian or counterintuitive insights that challenge conventional thinking?
+3. Unstated Assumptions: What assumptions does the author make that aren't explicitly stated?
+4. Potential Experiments: What new experiments, tests, or research could be designed based on these ideas?
+5. Industry Applications: Which industries or sectors could benefit most from these insights and how?
+
+Blog Title: {title}
+Blog Content:
+{content[:6000]}
+
+Respond in JSON format:
+{{
+    "central_takeaways": ["takeaway 1", "takeaway 2", "takeaway 3"],
+    "contrarian_takeaways": ["contrarian 1", "contrarian 2", "contrarian 3"],
+    "unstated_assumptions": ["assumption 1", "assumption 2", "assumption 3"],
+    "potential_experiments": ["experiment 1", "experiment 2", "experiment 3"],
+    "industry_applications": ["industry/application 1", "industry/application 2", "industry/application 3"]
+}}"""
+
+        message = client.messages.create(
+            model="claude-sonnet-4-5",
+            max_tokens=8192,
+            messages=[{"role": "user", "content": prompt}]
+        )
+        
+        response_text = message.content[0].text if message.content[0].type == "text" else ""
+        
+        try:
+            json_start = response_text.find('{')
+            json_end = response_text.rfind('}') + 1
+            if json_start != -1 and json_end > json_start:
+                response_text = response_text[json_start:json_end]
+            
+            result = json.loads(response_text)
+            return result
+        except json.JSONDecodeError:
+            return {
+                'central_takeaways': [],
+                'contrarian_takeaways': [],
+                'unstated_assumptions': [],
+                'potential_experiments': [],
+                'industry_applications': []
+            }
+    
+    return process_with_retry()
+
+
 def categorize_and_summarize_post(content: str, url: str, title: str) -> Dict:
     @retry(
         stop=stop_after_attempt(7),
@@ -149,12 +206,17 @@ def process_posts_batch(posts: List[Dict[str, str]], progress_callback=None) -> 
     results = []
     
     def process_single_post(i: int, post: Dict[str, str]) -> tuple[int, Dict]:
-        result = categorize_and_summarize_post(
-            post['content'], 
-            post['url'], 
-            post.get('title', 'Untitled')
-        )
-        return (i, result)
+        title = post.get('title', 'Untitled')
+        content = post['content']
+        url = post['url']
+        
+        summary_result = categorize_and_summarize_post(content, url, title)
+        
+        insights_result = extract_deep_insights(content, title)
+        
+        combined_result = {**summary_result, **insights_result}
+        
+        return (i, combined_result)
     
     with ThreadPoolExecutor(max_workers=2) as executor:
         futures = {executor.submit(process_single_post, i, post): i for i, post in enumerate(posts)}
