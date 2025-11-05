@@ -25,13 +25,19 @@ url_input = st.text_input(
     help="Paste the URL where all blog posts are listed"
 )
 
-max_posts = st.slider(
-    "Maximum number of posts to process:",
-    min_value=5,
-    max_value=50,
-    value=10,
-    help="Limit the number of posts to analyze (to manage processing time and costs)"
-)
+process_all = st.checkbox("Process ALL blog posts (may take 45-60 minutes for hundreds of posts)", value=False)
+
+if not process_all:
+    max_posts = st.slider(
+        "Maximum number of posts to process:",
+        min_value=5,
+        max_value=100,
+        value=10,
+        help="Limit the number of posts to analyze (to manage processing time and costs)"
+    )
+else:
+    max_posts = None
+    st.warning("⚠️ Processing all posts will take significant time and use API credits. The process will run in batches of 2 concurrent requests.")
 
 if st.button("🚀 Analyze Blog Posts", type="primary"):
     if not url_input:
@@ -47,12 +53,17 @@ if st.button("🚀 Analyze Blog Posts", type="primary"):
                 
                 st.success(f"Found {len(links)} potential blog posts")
                 
-                with st.expander("🔍 View extracted links", expanded=False):
-                    for i, link in enumerate(links[:max_posts], 1):
-                        st.text(f"{i}. {link['title'][:80]}")
-                        st.caption(link['url'])
+                if max_posts:
+                    links_to_process = links[:max_posts]
+                    with st.expander("🔍 View extracted links", expanded=False):
+                        for i, link in enumerate(links_to_process, 1):
+                            st.text(f"{i}. {link['title'][:80]}")
+                            st.caption(link['url'])
+                else:
+                    links_to_process = links
+                    st.info(f"📊 Processing all {len(links)} posts. This will take approximately {len(links) * 10 // 60} minutes.")
                 
-                links = links[:max_posts]
+                links = links_to_process
             
             progress_bar = st.progress(0)
             status_text = st.empty()
