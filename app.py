@@ -1,6 +1,7 @@
 import streamlit as st
 from scraper import extract_blog_links, scrape_blog_post
-from ai_processor import process_posts_batch
+from ai_processor import process_posts_batch, generate_cluster_labels
+from embedding_cluster import cluster_blog_posts
 from datetime import datetime
 import os
 from replit.object_storage import Client
@@ -23,6 +24,10 @@ if 'markdown_content' not in st.session_state:
     st.session_state.markdown_content = None
 if 'scraped_posts' not in st.session_state:
     st.session_state.scraped_posts = None
+if 'cluster_data' not in st.session_state:
+    st.session_state.cluster_data = None
+if 'cluster_metadata' not in st.session_state:
+    st.session_state.cluster_metadata = None
 
 url_input = st.text_input(
     "Enter the URL of the blog listing page:",
@@ -100,87 +105,195 @@ if st.button("🚀 Analyze Blog Posts", type="primary"):
                 st.stop()
             
             status_text.text(f"Analyzing {len(scraped_posts)} posts with AI...")
-            progress_bar.progress(0.6)
+            progress_bar.progress(0.5)
             
             results = process_posts_batch(scraped_posts, progress_callback=None)
+            
+            progress_bar.progress(0.7)
+            status_text.text("🔍 Discovering topic clusters using embeddings...")
+            
+            try:
+                clustering_result = cluster_blog_posts(results)
+                
+                progress_bar.progress(0.85)
+                status_text.text("🏷️ Generating cluster labels...")
+                
+                cluster_metadata = generate_cluster_labels(clustering_result['clusters'])
+            except ValueError as e:
+                if "OPENAI_API_KEY" in str(e):
+                    st.warning("⚠️ Semantic clustering requires an OpenAI API key. Using AI categories instead.")
+                    clustering_result = None
+                    cluster_metadata = None
+                else:
+                    raise
+            except Exception as e:
+                st.warning(f"⚠️ Clustering failed: {str(e)}. Using AI categories instead.")
+                clustering_result = None
+                cluster_metadata = None
             
             progress_bar.progress(1.0)
             status_text.text("✅ Analysis complete!")
             
             st.session_state.processed_data = results
             st.session_state.scraped_posts = scraped_posts
-            
-            categories = {}
-            for result in results:
-                cat = result.get('category', 'Other')
-                if cat not in categories:
-                    categories[cat] = []
-                categories[cat].append(result)
+            st.session_state.cluster_data = clustering_result
+            st.session_state.cluster_metadata = cluster_metadata
             
             domain = url_input.split('/')[2] if '/' in url_input else 'Unknown'
             
-            markdown_lines = [
-                f"# Knowledge Base: {domain} Blog Content",
-                f"",
-                f"## Context",
-                f"This document contains curated summaries and insights from blog posts published on {domain}.",
-                f"Use this knowledge base to:",
-                f"- Understand key topics and trends discussed in their content",
-                f"- Reference specific examples and implementations",
-                f"- Generate ideas based on established patterns and approaches",
-                f"- Support brainstorming with real-world case studies",
-                f"",
-                f"**Source URL:** {url_input}",
-                f"**Analysis Date:** {datetime.now().strftime('%Y-%m-%d')}",
-                f"**Total Articles:** {len(results)}",
-                f"**Categories Covered:** {len(categories)}",
-                f"",
-                f"---",
-                f"",
-                f"## Table of Contents",
-                f""
-            ]
-            
-            for i, category in enumerate(sorted(categories.keys()), 1):
-                post_count = len(categories[category])
-                markdown_lines.append(f"{i}. [{category}](#{category.lower().replace(' ', '-').replace('/', '')}) ({post_count} articles)")
-            
-            markdown_lines.extend([
-                f"",
-                f"---",
-                f""
-            ])
-            
-            for category in sorted(categories.keys()):
-                posts = categories[category]
-                markdown_lines.append(f"## {category}")
-                markdown_lines.append("")
-                markdown_lines.append(f"*{len(posts)} article{'s' if len(posts) != 1 else ''} in this category*")
-                markdown_lines.append("")
+            if clustering_result and cluster_metadata:
+                clusters = clustering_result['clusters']
+                metadata = cluster_metadata
                 
-                for idx, post in enumerate(posts, 1):
-                    markdown_lines.append(f"### {idx}. {post['title']}")
+                markdown_lines = [
+                    f"# Knowledge Base: {domain} Blog Content",
+                    f"",
+                    f"## Context",
+                    f"This document contains curated summaries and insights from blog posts published on {domain}.",
+                    f"Posts are automatically organized by topic using AI-powered semantic clustering.",
+                    f"",
+                    f"Use this knowledge base to:",
+                    f"- Understand key topics and trends discussed in their content",
+                    f"- Reference specific examples and implementations",
+                    f"- Generate ideas based on established patterns and approaches",
+                    f"- Support brainstorming with real-world case studies",
+                    f"",
+                    f"**Source URL:** {url_input}",
+                    f"**Analysis Date:** {datetime.now().strftime('%Y-%m-%d')}",
+                    f"**Total Articles:** {len(results)}",
+                    f"**Topic Clusters Discovered:** {len(clusters)}",
+                    f"",
+                    f"---",
+                    f"",
+                    f"## Table of Contents",
+                    f""
+                ]
+                
+                for cluster_id in sorted(clusters.keys()):
+                    meta = metadata.get(cluster_id, {})
+                    label = meta.get('label', f'Topic {cluster_id + 1}')
+                    post_count = len(clusters[cluster_id])
+                    anchor = label.lower().replace(' ', '-').replace('/', '').replace('&', '')
+                    markdown_lines.append(f"{cluster_id + 1}. [{label}](#{anchor}) ({post_count} articles)")
+                
+                markdown_lines.extend([
+                    f"",
+                    f"---",
+                    f""
+                ])
+                
+                for cluster_id in sorted(clusters.keys()):
+                    posts = clusters[cluster_id]
+                    meta = metadata.get(cluster_id, {})
+                    label = meta.get('label', f'Topic {cluster_id + 1}')
+                    summary = meta.get('summary', 'A group of related posts')
+                    themes = meta.get('themes', [])
+                    
+                    markdown_lines.append(f"## {label}")
                     markdown_lines.append("")
-                    markdown_lines.append(f"**Source:** [{post['title']}]({post['url']})")
+                    markdown_lines.append(f"**Topic Overview:** {summary}")
+                    if themes:
+                        markdown_lines.append(f"")
+                        markdown_lines.append(f"**Key Themes:** {', '.join(themes)}")
                     markdown_lines.append("")
-                    markdown_lines.append(f"#### Summary")
-                    markdown_lines.append(post['summary'])
+                    markdown_lines.append(f"*{len(posts)} article{'s' if len(posts) != 1 else ''} in this cluster*")
+                    markdown_lines.append("")
+                    markdown_lines.append("---")
                     markdown_lines.append("")
                     
-                    if post.get('main_points'):
-                        markdown_lines.append("#### Key Takeaways")
-                        for point in post['main_points']:
-                            markdown_lines.append(f"- {point}")
+                    for idx, post in enumerate(posts, 1):
+                        markdown_lines.append(f"### {idx}. {post['title']}")
                         markdown_lines.append("")
-                    
-                    if post.get('examples') and any(post['examples']):
-                        markdown_lines.append("#### Real-World Examples & Applications")
-                        for example in post['examples']:
-                            if example:
-                                markdown_lines.append(f"- {example}")
+                        markdown_lines.append(f"**Source:** [{post['title']}]({post['url']})")
                         markdown_lines.append("")
-                    
+                        markdown_lines.append(f"#### Summary")
+                        markdown_lines.append(post['summary'])
+                        markdown_lines.append("")
+                        
+                        if post.get('main_points'):
+                            markdown_lines.append("#### Key Takeaways")
+                            for point in post['main_points']:
+                                markdown_lines.append(f"- {point}")
+                            markdown_lines.append("")
+                        
+                        if post.get('examples') and any(post['examples']):
+                            markdown_lines.append("#### Real-World Examples & Applications")
+                            for example in post['examples']:
+                                if example:
+                                    markdown_lines.append(f"- {example}")
+                            markdown_lines.append("")
+                        
+                        markdown_lines.append("")
+            else:
+                categories = {}
+                for result in results:
+                    cat = result.get('category', 'Other')
+                    if cat not in categories:
+                        categories[cat] = []
+                    categories[cat].append(result)
+                
+                markdown_lines = [
+                    f"# Knowledge Base: {domain} Blog Content",
+                    f"",
+                    f"## Context",
+                    f"This document contains curated summaries and insights from blog posts published on {domain}.",
+                    f"Use this knowledge base to:",
+                    f"- Understand key topics and trends discussed in their content",
+                    f"- Reference specific examples and implementations",
+                    f"- Generate ideas based on established patterns and approaches",
+                    f"- Support brainstorming with real-world case studies",
+                    f"",
+                    f"**Source URL:** {url_input}",
+                    f"**Analysis Date:** {datetime.now().strftime('%Y-%m-%d')}",
+                    f"**Total Articles:** {len(results)}",
+                    f"**Categories Covered:** {len(categories)}",
+                    f"",
+                    f"---",
+                    f"",
+                    f"## Table of Contents",
+                    f""
+                ]
+                
+                for i, category in enumerate(sorted(categories.keys()), 1):
+                    post_count = len(categories[category])
+                    markdown_lines.append(f"{i}. [{category}](#{category.lower().replace(' ', '-').replace('/', '')}) ({post_count} articles)")
+                
+                markdown_lines.extend([
+                    f"",
+                    f"---",
+                    f""
+                ])
+                
+                for category in sorted(categories.keys()):
+                    posts = categories[category]
+                    markdown_lines.append(f"## {category}")
                     markdown_lines.append("")
+                    markdown_lines.append(f"*{len(posts)} article{'s' if len(posts) != 1 else ''} in this category*")
+                    markdown_lines.append("")
+                    
+                    for idx, post in enumerate(posts, 1):
+                        markdown_lines.append(f"### {idx}. {post['title']}")
+                        markdown_lines.append("")
+                        markdown_lines.append(f"**Source:** [{post['title']}]({post['url']})")
+                        markdown_lines.append("")
+                        markdown_lines.append(f"#### Summary")
+                        markdown_lines.append(post['summary'])
+                        markdown_lines.append("")
+                        
+                        if post.get('main_points'):
+                            markdown_lines.append("#### Key Takeaways")
+                            for point in post['main_points']:
+                                markdown_lines.append(f"- {point}")
+                            markdown_lines.append("")
+                        
+                        if post.get('examples') and any(post['examples']):
+                            markdown_lines.append("#### Real-World Examples & Applications")
+                            for example in post['examples']:
+                                if example:
+                                    markdown_lines.append(f"- {example}")
+                            markdown_lines.append("")
+                        
+                        markdown_lines.append("")
             
             st.session_state.markdown_content = "\n".join(markdown_lines)
             
@@ -203,40 +316,93 @@ if st.session_state.processed_data:
     st.header("📊 Results")
     
     results = st.session_state.processed_data
-    categories = {}
-    for result in results:
-        cat = result.get('category', 'Other')
-        if cat not in categories:
-            categories[cat] = []
-        categories[cat].append(result)
     
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.metric("Total Posts", len(results))
-    with col2:
-        st.metric("Categories", len(categories))
-    with col3:
-        st.metric("Ready to Export", "✓")
+    view_mode = st.radio(
+        "View by:",
+        ["🎯 Topic Clusters (AI-Discovered)", "📂 AI Categories"],
+        horizontal=True,
+        help="Topic Clusters are automatically discovered using semantic similarity, while AI Categories are assigned by the AI"
+    )
     
-    for category in sorted(categories.keys()):
-        with st.expander(f"📂 {category} ({len(categories[category])} posts)", expanded=False):
-            for post in categories[category]:
-                st.markdown(f"**{post['title']}**")
-                st.caption(post['url'])
-                st.write(post['summary'])
-                
-                if post.get('main_points'):
-                    st.markdown("**Main Points:**")
-                    for point in post['main_points']:
-                        st.markdown(f"- {point}")
-                
-                if post.get('examples') and any(post['examples']):
-                    st.markdown("**Examples:**")
-                    for example in post['examples']:
-                        if example:
-                            st.markdown(f"- {example}")
-                
+    if view_mode == "🎯 Topic Clusters (AI-Discovered)" and st.session_state.cluster_data:
+        clusters = st.session_state.cluster_data['clusters']
+        metadata = st.session_state.cluster_metadata
+        
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("Total Posts", len(results))
+        with col2:
+            st.metric("Topic Clusters", len(clusters))
+        with col3:
+            st.metric("Ready to Export", "✓")
+        
+        st.info("🧠 **Semantic Clustering**: Posts are grouped by content similarity using AI embeddings, not predefined categories. This reveals natural topic patterns.")
+        
+        for cluster_id in sorted(clusters.keys()):
+            posts = clusters[cluster_id]
+            meta = metadata.get(cluster_id, {})
+            label = meta.get('label', f'Topic {cluster_id + 1}')
+            summary = meta.get('summary', 'A group of related posts')
+            themes = meta.get('themes', [])
+            
+            with st.expander(f"🎯 {label} ({len(posts)} posts)", expanded=False):
+                st.markdown(f"**Cluster Summary:** {summary}")
+                if themes:
+                    st.markdown(f"**Key Themes:** {', '.join(themes)}")
                 st.divider()
+                
+                for post in posts:
+                    st.markdown(f"**{post['title']}**")
+                    st.caption(post['url'])
+                    st.write(post['summary'])
+                    
+                    if post.get('main_points'):
+                        st.markdown("**Main Points:**")
+                        for point in post['main_points']:
+                            st.markdown(f"- {point}")
+                    
+                    if post.get('examples') and any(post['examples']):
+                        st.markdown("**Examples:**")
+                        for example in post['examples']:
+                            if example:
+                                st.markdown(f"- {example}")
+                    
+                    st.divider()
+    else:
+        categories = {}
+        for result in results:
+            cat = result.get('category', 'Other')
+            if cat not in categories:
+                categories[cat] = []
+            categories[cat].append(result)
+        
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("Total Posts", len(results))
+        with col2:
+            st.metric("Categories", len(categories))
+        with col3:
+            st.metric("Ready to Export", "✓")
+        
+        for category in sorted(categories.keys()):
+            with st.expander(f"📂 {category} ({len(categories[category])} posts)", expanded=False):
+                for post in categories[category]:
+                    st.markdown(f"**{post['title']}**")
+                    st.caption(post['url'])
+                    st.write(post['summary'])
+                    
+                    if post.get('main_points'):
+                        st.markdown("**Main Points:**")
+                        for point in post['main_points']:
+                            st.markdown(f"- {point}")
+                    
+                    if post.get('examples') and any(post['examples']):
+                        st.markdown("**Examples:**")
+                        for example in post['examples']:
+                            if example:
+                                st.markdown(f"- {example}")
+                    
+                    st.divider()
     
     st.header("💾 Export")
     

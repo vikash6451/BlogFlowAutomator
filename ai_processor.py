@@ -82,6 +82,69 @@ Respond in JSON format:
     return process_with_retry()
 
 
+def generate_cluster_labels(clusters: Dict[int, List[Dict]]) -> Dict[int, Dict]:
+    """
+    Generate meaningful labels and summaries for each cluster using Claude.
+    
+    Args:
+        clusters: Dictionary mapping cluster_id to list of posts
+    
+    Returns:
+        Dictionary mapping cluster_id to cluster metadata (label, summary, etc.)
+    """
+    cluster_metadata = {}
+    
+    for cluster_id, posts in clusters.items():
+        titles = [post.get('title', 'Untitled') for post in posts[:10]]
+        
+        summaries = [post.get('summary', '') for post in posts[:10] if post.get('summary')]
+        
+        prompt = f"""Analyze this group of {len(posts)} blog posts and generate:
+1. A concise, descriptive topic label (2-5 words)
+2. A brief summary of what this topic cluster is about (1-2 sentences)
+3. Key themes present across these posts
+
+Blog post titles in this cluster:
+{chr(10).join(f"- {title}" for title in titles)}
+
+{"Post summaries:" + chr(10).join(f"- {s[:200]}" for s in summaries[:5]) if summaries else ""}
+
+Respond in JSON format:
+{{
+    "label": "topic label",
+    "summary": "cluster summary",
+    "themes": ["theme 1", "theme 2", "theme 3"]
+}}"""
+
+        try:
+            message = client.messages.create(
+                model="claude-sonnet-4-5",
+                max_tokens=2048,
+                messages=[{"role": "user", "content": prompt}]
+            )
+            
+            response_text = message.content[0].text if message.content[0].type == "text" else ""
+            
+            json_start = response_text.find('{')
+            json_end = response_text.rfind('}') + 1
+            if json_start != -1 and json_end > json_start:
+                response_text = response_text[json_start:json_end]
+            
+            metadata = json.loads(response_text)
+            metadata['post_count'] = len(posts)
+            cluster_metadata[cluster_id] = metadata
+            
+        except Exception as e:
+            cluster_metadata[cluster_id] = {
+                'label': f'Topic {cluster_id + 1}',
+                'summary': f'A cluster of {len(posts)} related posts',
+                'themes': [],
+                'post_count': len(posts)
+            }
+    
+    return cluster_metadata
+
+
 def process_posts_batch(posts: List[Dict[str, str]], progress_callback=None) -> List[Dict]:
     results = []
     
