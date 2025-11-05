@@ -4,6 +4,9 @@ from ai_processor import process_posts_batch
 from datetime import datetime
 import os
 from replit.object_storage import Client
+import zipfile
+import io
+import re
 
 st.set_page_config(
     page_title="Blog Post Analyzer",
@@ -18,6 +21,8 @@ if 'processed_data' not in st.session_state:
     st.session_state.processed_data = None
 if 'markdown_content' not in st.session_state:
     st.session_state.markdown_content = None
+if 'scraped_posts' not in st.session_state:
+    st.session_state.scraped_posts = None
 
 url_input = st.text_input(
     "Enter the URL of the blog listing page:",
@@ -103,6 +108,7 @@ if st.button("🚀 Analyze Blog Posts", type="primary"):
             status_text.text("✅ Analysis complete!")
             
             st.session_state.processed_data = results
+            st.session_state.scraped_posts = scraped_posts
             
             categories = {}
             for result in results:
@@ -238,29 +244,73 @@ if st.session_state.processed_data:
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         filename = f"blog_analysis_{timestamp}.md"
         
-        st.download_button(
-            label="⬇️ Download Markdown File",
-            data=st.session_state.markdown_content,
-            file_name=filename,
-            mime="text/markdown",
-            type="primary"
-        )
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.download_button(
+                label="📄 Download Analysis Summary (Markdown)",
+                data=st.session_state.markdown_content,
+                file_name=filename,
+                mime="text/markdown",
+                type="primary",
+                help="Download the AI-generated summary with categories and key takeaways"
+            )
+        
+        with col2:
+            if st.session_state.scraped_posts:
+                def create_full_content_zip():
+                    zip_buffer = io.BytesIO()
+                    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+                        for i, post in enumerate(st.session_state.scraped_posts, 1):
+                            safe_title = re.sub(r'[^\w\s-]', '', post['title'])
+                            safe_title = re.sub(r'[-\s]+', '-', safe_title)
+                            safe_title = safe_title[:50]
+                            
+                            markdown_content = f"""# {post['title']}
+
+**Source:** {post['url']}
+
+---
+
+{post['content']}
+"""
+                            
+                            filename = f"{i:03d}_{safe_title}.md"
+                            zip_file.writestr(filename, markdown_content)
+                    
+                    zip_buffer.seek(0)
+                    return zip_buffer.getvalue()
+                
+                zip_data = create_full_content_zip()
+                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                zip_filename = f"blog_full_content_{timestamp}.zip"
+                
+                st.download_button(
+                    label="📦 Download Full Content (ZIP)",
+                    data=zip_data,
+                    file_name=zip_filename,
+                    mime="application/zip",
+                    type="secondary",
+                    help="Download all blog posts as individual markdown files in a ZIP"
+                )
         
         st.info("""
-        💡 **How to use this knowledge base:**
+        💡 **Two download options:**
         
-        **For ChatGPT Projects:**
-        1. Open ChatGPT and go to your Projects
-        2. Create a new project or select an existing one
-        3. Upload this markdown file to the project files
-        4. ChatGPT will use this as context for all conversations in that project
+        **1. Analysis Summary (Markdown)**
+        - Structured knowledge base with AI-generated summaries
+        - Organized by categories with key takeaways and examples
+        - Best for quick reference and brainstorming in ChatGPT/Claude Projects
         
-        **For Claude (via Projects or direct upload):**
-        1. Start a new conversation or project
-        2. Upload this markdown file
-        3. Claude will reference it for brainstorming and ideation
+        **2. Full Content (ZIP)**
+        - Complete original content of each blog post as individual markdown files
+        - Preserves full text from each article
+        - Best for deep research, archival, or detailed content analysis
         
-        The file is structured as a knowledge base with categories, summaries, key takeaways, and real-world examples.
+        **How to use in ChatGPT Projects or Claude:**
+        1. Upload the Analysis Summary markdown file to your project
+        2. The AI will use it as context for all conversations
+        3. For deeper dives, reference the full content files
         """)
         
         with st.expander("📄 Preview Markdown Output"):
