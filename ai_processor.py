@@ -104,7 +104,10 @@ def process_posts_batch(posts: List[Dict[str, str]], progress_callback=None) -> 
                 idx, result = future.result()
                 indexed_results[idx] = result
             except Exception as e:
-                print(f"Error processing post: {e}")
+                import traceback
+                error_details = traceback.format_exc()
+                print(f"Error processing post: {str(e)}")
+                print(f"Full traceback: {error_details}")
         
         results = [r for r in indexed_results if r is not None]
     

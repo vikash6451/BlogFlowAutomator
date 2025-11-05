@@ -46,25 +46,41 @@ if st.button("🚀 Analyze Blog Posts", type="primary"):
                     st.stop()
                 
                 st.success(f"Found {len(links)} potential blog posts")
+                
+                with st.expander("🔍 View extracted links", expanded=False):
+                    for i, link in enumerate(links[:max_posts], 1):
+                        st.text(f"{i}. {link['title'][:80]}")
+                        st.caption(link['url'])
+                
                 links = links[:max_posts]
             
             progress_bar = st.progress(0)
             status_text = st.empty()
             
             scraped_posts = []
+            scraping_errors = []
             status_text.text(f"Scraping content from {len(links)} posts...")
             
             for i, link in enumerate(links):
                 try:
                     post = scrape_blog_post(link['url'])
                     post['title'] = link['title']
-                    scraped_posts.append(post)
+                    if len(post['content']) > 100:
+                        scraped_posts.append(post)
+                    else:
+                        scraping_errors.append(f"{link['title'][:50]}: Content too short")
                     progress_bar.progress((i + 1) / len(links) * 0.5)
                 except Exception as e:
-                    st.warning(f"Skipped {link['url']}: {str(e)}")
+                    scraping_errors.append(f"{link['title'][:50]}: {str(e)}")
+            
+            if scraping_errors:
+                with st.expander(f"⚠️ Skipped {len(scraping_errors)} posts (click to see details)"):
+                    for error in scraping_errors[:10]:
+                        st.text(error)
             
             if not scraped_posts:
-                st.error("No content could be scraped from the posts")
+                st.error("No content could be scraped from the posts. The page might not contain standard blog post links.")
+                st.info("💡 Try providing a different URL or a page that lists blog articles more clearly.")
                 st.stop()
             
             status_text.text(f"Analyzing {len(scraped_posts)} posts with AI...")
