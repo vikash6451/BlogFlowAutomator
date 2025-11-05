@@ -211,6 +211,8 @@ if st.button("🚀 Analyze Blog Posts", type="primary"):
                         markdown_lines.append("")
                         markdown_lines.append(f"**Source:** [{post['title']}]({post['url']})")
                         markdown_lines.append("")
+                        markdown_lines.append(f"**Category:** {post.get('category', 'Other')}")
+                        markdown_lines.append("")
                         
                         markdown_lines.append(f"#### Summary")
                         markdown_lines.append(post['summary'])
