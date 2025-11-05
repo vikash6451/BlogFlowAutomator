@@ -84,12 +84,9 @@ if st.button("🚀 Analyze Blog Posts", type="primary"):
                 st.stop()
             
             status_text.text(f"Analyzing {len(scraped_posts)} posts with AI...")
+            progress_bar.progress(0.6)
             
-            def update_progress(current, total):
-                progress_bar.progress(0.5 + (current / total) * 0.5)
-                status_text.text(f"Analyzing posts with AI... {current}/{total}")
-            
-            results = process_posts_batch(scraped_posts, progress_callback=update_progress)
+            results = process_posts_batch(scraped_posts, progress_callback=None)
             
             progress_bar.progress(1.0)
             status_text.text("✅ Analysis complete!")

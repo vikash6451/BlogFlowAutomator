@@ -91,8 +91,6 @@ def process_posts_batch(posts: List[Dict[str, str]], progress_callback=None) -> 
             post['url'], 
             post.get('title', 'Untitled')
         )
-        if progress_callback:
-            progress_callback(i + 1, len(posts))
         return (i, result)
     
     with ThreadPoolExecutor(max_workers=2) as executor:
