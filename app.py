@@ -40,7 +40,7 @@ process_all = st.checkbox("Process ALL blog posts (may take 45-60 minutes for hu
 if not process_all:
     max_posts = st.slider(
         "Maximum number of posts to process:",
-        min_value=5,
+        min_value=1,
         max_value=100,
         value=10,
         help="Limit the number of posts to analyze (to manage processing time and costs)"
@@ -107,7 +107,12 @@ if st.button("🚀 Analyze Blog Posts", type="primary"):
             status_text.text(f"Analyzing {len(scraped_posts)} posts with AI...")
             progress_bar.progress(0.5)
             
-            results = process_posts_batch(scraped_posts, progress_callback=None)
+            def update_ai_progress(completed, total):
+                ai_progress = 0.5 + (completed / total * 0.2)
+                progress_bar.progress(ai_progress)
+                status_text.text(f"Analyzing posts with AI... ({completed}/{total} completed)")
+            
+            results = process_posts_batch(scraped_posts, progress_callback=update_ai_progress)
             
             progress_bar.progress(0.7)
             status_text.text("🔍 Discovering topic clusters using embeddings...")

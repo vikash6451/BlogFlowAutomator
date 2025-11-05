@@ -221,16 +221,25 @@ def process_posts_batch(posts: List[Dict[str, str]], progress_callback=None) -> 
     with ThreadPoolExecutor(max_workers=2) as executor:
         futures = {executor.submit(process_single_post, i, post): i for i, post in enumerate(posts)}
         indexed_results = [None] * len(posts)
+        completed_count = 0
         
         for future in as_completed(futures):
             try:
                 idx, result = future.result()
                 indexed_results[idx] = result
+                completed_count += 1
+                
+                if progress_callback:
+                    progress_callback(completed_count, len(posts))
             except Exception as e:
                 import traceback
                 error_details = traceback.format_exc()
                 print(f"Error processing post: {str(e)}")
                 print(f"Full traceback: {error_details}")
+                completed_count += 1
+                
+                if progress_callback:
+                    progress_callback(completed_count, len(posts))
         
         results = [r for r in indexed_results if r is not None]
     

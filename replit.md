@@ -7,9 +7,10 @@ The Blog Post Analyzer is an automated blog research tool that scrapes blog post
 **Core Functionality:**
 - Scrapes blog posts from listing pages
 - Extracts clean text content from individual blog posts
-- Uses Claude (Anthropic) to categorize and summarize posts
+- Uses Claude (Anthropic) to categorize, summarize, and extract deep insights from posts
 - Generates embeddings using OpenAI to cluster similar posts
-- Provides downloadable markdown reports and data exports
+- Extracts 5 types of deep insights per post for brainstorming: central takeaways, contrarian perspectives, unstated assumptions, potential experiments, and industry applications
+- Provides downloadable markdown reports and data exports optimized for ChatGPT Projects and Claude Skills
 - Uses Replit Object Storage for file persistence
 
 ## User Preferences
@@ -49,12 +50,14 @@ The application uses Streamlit's session state management to maintain processed 
 
 **AI Processing Layer** (`ai_processor.py`)
 - **Primary Model:** Anthropic Claude API
-- **Problem Addressed:** Automated categorization and summarization at scale
-- **Solution:** Batch processing with concurrent requests (ThreadPoolExecutor)
+- **Problem Addressed:** Automated categorization, summarization, and deep insight extraction at scale
+- **Solution:** Batch processing with concurrent requests (ThreadPoolExecutor); two sequential AI calls per post
 - **Rate Limiting Strategy:** Exponential backoff with 7 retry attempts
 - **Categorization:** Fixed taxonomy (Technology, Business, Marketing, Design, etc.)
-- **Pros:** Structured output via JSON; robust error handling
-- **Cons:** API costs scale with post volume
+- **Deep Insights:** Extracts 5 analysis dimensions - central takeaways, contrarian perspectives, unstated assumptions, potential experiments, industry applications
+- **Output:** Structured JSON with fallback parsing for robust error handling
+- **Pros:** Comprehensive analysis for brainstorming; structured output via JSON; robust error handling
+- **Cons:** API costs scale with post volume; ~2x cost per post due to dual analysis calls
 
 **Clustering Layer** (`embedding_cluster.py`)
 - **Embedding Model:** OpenAI text-embedding-3-large
@@ -86,6 +89,11 @@ The application uses Streamlit's session state management to maintain processed 
 - AI processing uses ThreadPoolExecutor (default 2 concurrent workers)
 - Embedding generation batches in groups of 100
 - Rate limit handling with exponential backoff (2-128 seconds)
+- Real-time progress tracking via callbacks updates UI during AI processing
+
+**User Controls:**
+- Post limit slider: 1-100 posts (allows testing with minimal posts)
+- Process all checkbox: Processes entire blog listing (no limit)
 
 **Rationale:** Balance between throughput and API rate limits to prevent request failures while maintaining reasonable processing times.
 
