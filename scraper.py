@@ -11,7 +11,12 @@ def get_website_text_content(url: str) -> str:
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
     }
     
-    downloaded = trafilatura.fetch_url(url, headers=headers)
+    try:
+        response = requests.get(url, headers=headers, timeout=30)
+        response.raise_for_status()
+        downloaded = response.text
+    except Exception:
+        downloaded = trafilatura.fetch_url(url)
     
     text = trafilatura.extract(
         downloaded,
@@ -24,9 +29,12 @@ def get_website_text_content(url: str) -> str:
         return text
     
     try:
-        response = requests.get(url, headers=headers, timeout=30)
-        response.raise_for_status()
-        soup = BeautifulSoup(response.content, 'html.parser')
+        if not isinstance(downloaded, str):
+            response = requests.get(url, headers=headers, timeout=30)
+            response.raise_for_status()
+            downloaded = response.text
+        
+        soup = BeautifulSoup(downloaded, 'html.parser')
         
         for tag in soup(['script', 'style', 'nav', 'header', 'footer', 'aside']):
             tag.decompose()
