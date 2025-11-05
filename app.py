@@ -3,6 +3,7 @@ from scraper import extract_blog_links, scrape_blog_post
 from ai_processor import process_posts_batch
 from datetime import datetime
 import os
+from replit.object_storage import Client
 
 st.set_page_config(
     page_title="Blog Post Analyzer",
@@ -128,7 +129,17 @@ if st.button("🚀 Analyze Blog Posts", type="primary"):
             
             st.session_state.markdown_content = "\n".join(markdown_lines)
             
-            st.success(f"🎉 Successfully processed {len(results)} blog posts!")
+            # Save to Object Storage
+            try:
+                storage_client = Client()
+                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                filename = f"blog_analysis_{timestamp}.md"
+                storage_client.upload_from_text(filename, st.session_state.markdown_content)
+                st.success(f"🎉 Successfully processed {len(results)} blog posts!")
+                st.info(f"📁 Output saved to Object Storage: {filename}")
+            except Exception as e:
+                st.success(f"🎉 Successfully processed {len(results)} blog posts!")
+                st.warning(f"Note: Could not save to Object Storage: {str(e)}")
             
         except Exception as e:
             st.error(f"An error occurred: {str(e)}")
@@ -190,6 +201,35 @@ if st.session_state.processed_data:
         
         with st.expander("📄 Preview Markdown Output"):
             st.code(st.session_state.markdown_content, language="markdown")
+
+st.divider()
+
+# Show saved files from Object Storage
+st.header("📂 Saved Analysis Files")
+try:
+    storage_client = Client()
+    saved_files = storage_client.list()
+    
+    if saved_files:
+        st.write(f"Found {len(saved_files)} saved analysis file(s):")
+        for file in saved_files:
+            col1, col2 = st.columns([3, 1])
+            with col1:
+                st.text(file)
+            with col2:
+                if st.button("Download", key=f"dl_{file}"):
+                    content = storage_client.download_as_text(file)
+                    st.download_button(
+                        label="⬇️ Save File",
+                        data=content,
+                        file_name=file,
+                        mime="text/markdown",
+                        key=f"save_{file}"
+                    )
+    else:
+        st.info("No saved files yet. Run an analysis to create your first file!")
+except Exception as e:
+    st.info("Object Storage not configured. Files will only be available for download during the session.")
 
 st.divider()
 st.caption("Built with Streamlit • Powered by Claude AI via Replit AI Integrations")

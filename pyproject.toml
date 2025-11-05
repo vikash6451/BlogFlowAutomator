@@ -6,6 +6,7 @@ requires-python = ">=3.11"
 dependencies = [
     "anthropic>=0.72.0",
     "beautifulsoup4>=4.14.2",
+    "replit-object-storage>=1.0.2",
     "requests>=2.32.5",
     "streamlit>=1.51.0",
     "tenacity>=9.1.2",
