@@ -6,8 +6,10 @@ requires-python = ">=3.11"
 dependencies = [
     "anthropic>=0.72.0",
     "beautifulsoup4>=4.14.2",
+    "numpy>=2.3.4",
     "replit-object-storage>=1.0.2",
     "requests>=2.32.5",
+    "scikit-learn>=1.7.2",
     "streamlit>=1.51.0",
     "tenacity>=9.1.2",
     "trafilatura>=2.0.0",
