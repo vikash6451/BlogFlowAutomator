@@ -111,44 +111,69 @@ if st.button("🚀 Analyze Blog Posts", type="primary"):
                     categories[cat] = []
                 categories[cat].append(result)
             
+            domain = url_input.split('/')[2] if '/' in url_input else 'Unknown'
+            
             markdown_lines = [
-                f"# Blog Post Analysis",
+                f"# Knowledge Base: {domain} Blog Content",
                 f"",
-                f"**Source:** {url_input}",
-                f"**Date:** {datetime.now().strftime('%Y-%m-%d %H:%M')}",
-                f"**Total Posts Analyzed:** {len(results)}",
+                f"## Context",
+                f"This document contains curated summaries and insights from blog posts published on {domain}.",
+                f"Use this knowledge base to:",
+                f"- Understand key topics and trends discussed in their content",
+                f"- Reference specific examples and implementations",
+                f"- Generate ideas based on established patterns and approaches",
+                f"- Support brainstorming with real-world case studies",
+                f"",
+                f"**Source URL:** {url_input}",
+                f"**Analysis Date:** {datetime.now().strftime('%Y-%m-%d')}",
+                f"**Total Articles:** {len(results)}",
+                f"**Categories Covered:** {len(categories)}",
                 f"",
                 f"---",
+                f"",
+                f"## Table of Contents",
                 f""
             ]
             
+            for i, category in enumerate(sorted(categories.keys()), 1):
+                post_count = len(categories[category])
+                markdown_lines.append(f"{i}. [{category}](#{category.lower().replace(' ', '-').replace('/', '')}) ({post_count} articles)")
+            
+            markdown_lines.extend([
+                f"",
+                f"---",
+                f""
+            ])
+            
             for category in sorted(categories.keys()):
                 posts = categories[category]
-                markdown_lines.append(f"## 📂 {category} ({len(posts)} posts)")
+                markdown_lines.append(f"## {category}")
+                markdown_lines.append("")
+                markdown_lines.append(f"*{len(posts)} article{'s' if len(posts) != 1 else ''} in this category*")
                 markdown_lines.append("")
                 
-                for post in posts:
-                    markdown_lines.append(f"### {post['title']}")
-                    markdown_lines.append(f"**URL:** {post['url']}")
+                for idx, post in enumerate(posts, 1):
+                    markdown_lines.append(f"### {idx}. {post['title']}")
                     markdown_lines.append("")
-                    markdown_lines.append(f"**Summary:**")
+                    markdown_lines.append(f"**Source:** [{post['title']}]({post['url']})")
+                    markdown_lines.append("")
+                    markdown_lines.append(f"#### Summary")
                     markdown_lines.append(post['summary'])
                     markdown_lines.append("")
                     
                     if post.get('main_points'):
-                        markdown_lines.append("**Main Points:**")
+                        markdown_lines.append("#### Key Takeaways")
                         for point in post['main_points']:
                             markdown_lines.append(f"- {point}")
                         markdown_lines.append("")
                     
                     if post.get('examples') and any(post['examples']):
-                        markdown_lines.append("**Examples:**")
+                        markdown_lines.append("#### Real-World Examples & Applications")
                         for example in post['examples']:
                             if example:
                                 markdown_lines.append(f"- {example}")
                         markdown_lines.append("")
                     
-                    markdown_lines.append("---")
                     markdown_lines.append("")
             
             st.session_state.markdown_content = "\n".join(markdown_lines)
@@ -221,7 +246,22 @@ if st.session_state.processed_data:
             type="primary"
         )
         
-        st.info("💡 You can upload this markdown file to ChatGPT Projects or Claude to use as context for brainstorming sessions.")
+        st.info("""
+        💡 **How to use this knowledge base:**
+        
+        **For ChatGPT Projects:**
+        1. Open ChatGPT and go to your Projects
+        2. Create a new project or select an existing one
+        3. Upload this markdown file to the project files
+        4. ChatGPT will use this as context for all conversations in that project
+        
+        **For Claude (via Projects or direct upload):**
+        1. Start a new conversation or project
+        2. Upload this markdown file
+        3. Claude will reference it for brainstorming and ideation
+        
+        The file is structured as a knowledge base with categories, summaries, key takeaways, and real-world examples.
+        """)
         
         with st.expander("📄 Preview Markdown Output"):
             st.code(st.session_state.markdown_content, language="markdown")
