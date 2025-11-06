@@ -76,32 +76,54 @@ def score_link(link: Dict[str, str], listing_url: str) -> int:
     url = link['url'].lower()
     title = link['title'].lower()
     
+    # Positive signals for blog posts
     blog_path_keywords = ['blog', 'post', 'article', 'news', 'story', 'tutorial', 'guide', 'insight', 'resources']
     for keyword in blog_path_keywords:
         if keyword in url:
             score += 10
     
+    # Date in URL is strong signal for blog post
     date_pattern = r'/(20\d{2})/|(20\d{2})[-/](\d{2})[-/](\d{2})'
     if re.search(date_pattern, url):
         score += 15
     
-    exclusion_patterns = [
-        'about', 'contact', 'privacy', 'terms', 'category', 'tag', 'author',
-        'search', 'page', 'login', 'signup', 'profile', 'settings', 'admin',
-        'wp-content', 'wp-admin', 'feed', 'rss', 'sitemap'
+    # Specific regex patterns for actual pagination and admin pages (not broad string matching)
+    regex_exclusions = [
+        r'/page/\d+/?$',  # Pagination like /page/2/
+        r'[?&]page=\d+',  # Query param pagination like ?page=2
+        r'/category/',    # Category listing
+        r'/tag/',         # Tag listing  
+        r'/author/',      # Author listing
+        r'/(wp-admin|wp-content)/',  # WordPress admin
+        r'/(login|signup|signin|register)',  # Auth pages
+        r'/(settings|profile|account)/',  # User pages
+        r'/(feed|rss|sitemap)',  # Feed URLs
     ]
-    for pattern in exclusion_patterns:
-        if pattern in url:
+    for pattern in regex_exclusions:
+        if re.search(pattern, url):
             score -= 20
     
+    # Broad exclusions for non-blog pages (only if exact match in path segment)
+    broad_exclusions = ['about', 'contact', 'privacy', 'terms', 'search']
+    url_parts = url.split('/')
+    for pattern in broad_exclusions:
+        if pattern in url_parts:
+            score -= 20
+    
+    # Good title length is positive signal
     if len(title) > 15 and len(title) < 150:
         score += 5
     
+    # URL depth indicates content page
     parsed_listing = urlparse(listing_url)
     parsed_link = urlparse(link['url'])
     depth = len([p for p in parsed_link.path.split('/') if p])
     if 2 <= depth <= 5:
         score += 3
+    
+    # Boost score if title looks like article (longer, not spammy)
+    if len(title) > 30 and not any(spam in title for spam in ['click here', 'read more', 'view all']):
+        score += 5
     
     return score
 
