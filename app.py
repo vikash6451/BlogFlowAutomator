@@ -19,6 +19,7 @@ os.environ["USE_OPENAI"] = str(USE_OPENAI)
 from scraper import extract_blog_links, scrape_blog_post
 from ai_processor import process_posts_batch, generate_cluster_labels
 from embedding_cluster import cluster_blog_posts
+from checkpoint_manager import CheckpointManager
 
 st.set_page_config(
     page_title="Blog Post Analyzer",
@@ -29,6 +30,7 @@ st.set_page_config(
 st.title("📚 Blog Post Analyzer & Summarizer")
 st.write("Automate your blog research workflow: scrape, categorize, and summarize blog posts using AI")
 
+# Initialize session state
 if 'processed_data' not in st.session_state:
     st.session_state.processed_data = None
 if 'markdown_content' not in st.session_state:
@@ -39,6 +41,33 @@ if 'cluster_data' not in st.session_state:
     st.session_state.cluster_data = None
 if 'cluster_metadata' not in st.session_state:
     st.session_state.cluster_metadata = None
+if 'checkpoint_manager' not in st.session_state:
+    st.session_state.checkpoint_manager = CheckpointManager()
+if 'current_run_id' not in st.session_state:
+    st.session_state.current_run_id = None
+if 'resume_checkpoint' not in st.session_state:
+    st.session_state.resume_checkpoint = None
+
+# Check for incomplete checkpoints
+incomplete_checkpoints = st.session_state.checkpoint_manager.list_incomplete_checkpoints()
+
+if incomplete_checkpoints and not st.session_state.resume_checkpoint:
+    st.info("💾 **Found incomplete analysis runs!** You can resume from where you left off.")
+    
+    for checkpoint in incomplete_checkpoints[:3]:  # Show up to 3 most recent
+        col1, col2, col3 = st.columns([3, 2, 1])
+        
+        with col1:
+            st.write(f"**{checkpoint['url']}**")
+        with col2:
+            timestamp = datetime.fromisoformat(checkpoint['timestamp'])
+            st.caption(f"Started: {timestamp.strftime('%Y-%m-%d %H:%M')}")
+        with col3:
+            if st.button(f"📥 Resume ({checkpoint['progress']})", key=f"resume_{checkpoint['run_id']}"):
+                st.session_state.resume_checkpoint = checkpoint['run_id']
+                st.rerun()
+    
+    st.divider()
 
 url_input = st.text_input(
     "Enter the URL of the blog listing page:",
@@ -60,70 +89,154 @@ else:
     max_posts = None
     st.warning("⚠️ Processing all posts will take significant time and use API credits. The process will run in batches of 2 concurrent requests.")
 
-if st.button("🚀 Analyze Blog Posts", type="primary"):
-    if not url_input:
+# Handle resume from checkpoint
+if st.session_state.resume_checkpoint:
+    checkpoint_data = st.session_state.checkpoint_manager.load_checkpoint(st.session_state.resume_checkpoint)
+    
+    if checkpoint_data:
+        st.info(f"📥 Resuming from checkpoint: {checkpoint_data['progress']} posts completed")
+        
+        # Pre-populate the URL
+        url_input = checkpoint_data['url']
+        
+        # Set session state for resumption
+        st.session_state.scraped_posts = checkpoint_data.get('scraped_links', [])
+        st.session_state.current_run_id = checkpoint_data['run_id']
+        
+        # Trigger processing with resume flag
+        process_resume = True
+    else:
+        st.error("Failed to load checkpoint. Starting a new analysis instead.")
+        st.session_state.resume_checkpoint = None
+        process_resume = False
+else:
+    process_resume = False
+
+if st.button("🚀 Analyze Blog Posts", type="primary") or process_resume:
+    if not url_input and not process_resume:
         st.error("Please enter a URL")
     else:
         try:
-            with st.spinner("Extracting blog post links..."):
-                links = extract_blog_links(url_input)
+            # Initialize run_id at the start for proper scoping
+            run_id = None
+            
+            # Handle resume vs new run
+            if process_resume and st.session_state.resume_checkpoint:
+                checkpoint_data = st.session_state.checkpoint_manager.load_checkpoint(st.session_state.resume_checkpoint)
                 
-                if not links:
-                    st.error("No blog post links found on this page. Please check the URL.")
+                if not checkpoint_data:
+                    st.error("Failed to load checkpoint. Please start a new analysis.")
                     st.stop()
                 
-                st.success(f"Found {len(links)} potential blog posts")
+                scraped_posts = checkpoint_data.get('scraped_links', [])
+                existing_results = checkpoint_data.get('processed_results', [])
+                start_index = checkpoint_data.get('last_index', 0)
+                run_id = checkpoint_data['run_id']
                 
-                if max_posts:
-                    links_to_process = links[:max_posts]
-                    with st.expander("🔍 View extracted links", expanded=False):
-                        for i, link in enumerate(links_to_process, 1):
-                            st.text(f"{i}. {link['title'][:80]}")
-                            st.caption(link['url'])
-                else:
-                    links_to_process = links
-                    st.info(f"📊 Processing all {len(links)} posts. This will take approximately {len(links) * 10 // 60} minutes.")
+                st.info(f"📥 Resuming from checkpoint - already processed {start_index} posts")
                 
-                links = links_to_process
+                # Clear resume flag
+                st.session_state.resume_checkpoint = None
+            else:
+                # New run - scrape links first
+                with st.spinner("Extracting blog post links..."):
+                    links = extract_blog_links(url_input)
+                    
+                    if not links:
+                        st.error("No blog post links found on this page. Please check the URL.")
+                        st.stop()
+                    
+                    st.success(f"Found {len(links)} potential blog posts")
+                    
+                    if max_posts:
+                        links_to_process = links[:max_posts]
+                        with st.expander("🔍 View extracted links", expanded=False):
+                            for i, link in enumerate(links_to_process, 1):
+                                st.text(f"{i}. {link['title'][:80]}")
+                                st.caption(link['url'])
+                    else:
+                        links_to_process = links
+                        st.info(f"📊 Processing all {len(links)} posts. This will take approximately {len(links) * 10 // 60} minutes.")
+                    
+                    links = links_to_process
+                
+                progress_bar = st.progress(0)
+                status_text = st.empty()
+                
+                scraped_posts = []
+                scraping_errors = []
+                status_text.text(f"Scraping content from {len(links)} posts...")
+                
+                for i, link in enumerate(links):
+                    try:
+                        post = scrape_blog_post(link['url'])
+                        post['title'] = link['title']
+                        if len(post['content']) > 100:
+                            scraped_posts.append(post)
+                        else:
+                            scraping_errors.append(f"{link['title'][:50]}: Content too short")
+                        progress_bar.progress((i + 1) / len(links) * 0.5)
+                    except Exception as e:
+                        scraping_errors.append(f"{link['title'][:50]}: {str(e)}")
+                
+                if scraping_errors:
+                    with st.expander(f"⚠️ Skipped {len(scraping_errors)} posts (click to see details)"):
+                        for error in scraping_errors[:10]:
+                            st.text(error)
+                
+                if not scraped_posts:
+                    st.error("No content could be scraped from the posts. The page might not contain standard blog post links.")
+                    st.info("💡 Try providing a different URL or a page that lists blog articles more clearly.")
+                    st.stop()
+                
+                existing_results = []
+                start_index = 0
+                run_id = None
             
-            progress_bar = st.progress(0)
+            # AI Processing with checkpointing
+            progress_bar = st.progress(0 if not process_resume else 0.5)
             status_text = st.empty()
             
-            scraped_posts = []
-            scraping_errors = []
-            status_text.text(f"Scraping content from {len(links)} posts...")
+            total_posts = len(scraped_posts)
+            posts_to_process = scraped_posts[start_index:]
             
-            for i, link in enumerate(links):
-                try:
-                    post = scrape_blog_post(link['url'])
-                    post['title'] = link['title']
-                    if len(post['content']) > 100:
-                        scraped_posts.append(post)
-                    else:
-                        scraping_errors.append(f"{link['title'][:50]}: Content too short")
-                    progress_bar.progress((i + 1) / len(links) * 0.5)
-                except Exception as e:
-                    scraping_errors.append(f"{link['title'][:50]}: {str(e)}")
+            status_text.text(f"Analyzing posts with AI... ({start_index}/{total_posts} completed)")
             
-            if scraping_errors:
-                with st.expander(f"⚠️ Skipped {len(scraping_errors)} posts (click to see details)"):
-                    for error in scraping_errors[:10]:
-                        st.text(error)
+            # Progress callback with checkpoint saving
+            checkpoint_manager = st.session_state.checkpoint_manager
+            results = list(existing_results)  # Start with existing results
             
-            if not scraped_posts:
-                st.error("No content could be scraped from the posts. The page might not contain standard blog post links.")
-                st.info("💡 Try providing a different URL or a page that lists blog articles more clearly.")
-                st.stop()
+            # Store run_id in session state for access from callback
+            if not st.session_state.current_run_id and not run_id:
+                st.session_state.current_run_id = None
+            elif run_id:
+                st.session_state.current_run_id = run_id
             
-            status_text.text(f"Analyzing {len(scraped_posts)} posts with AI...")
-            progress_bar.progress(0.5)
-            
-            def update_ai_progress(completed, total):
-                ai_progress = 0.5 + (completed / total * 0.2)
+            def update_ai_progress_with_checkpoint(completed_in_batch, total_in_batch):
+                actual_completed = start_index + completed_in_batch
+                ai_progress = 0.5 + (actual_completed / total_posts * 0.2)
                 progress_bar.progress(ai_progress)
-                status_text.text(f"Analyzing posts with AI... ({completed}/{total} completed)")
+                status_text.text(f"Analyzing posts with AI... ({actual_completed}/{total_posts} completed)")
+                
+                # Save checkpoint every 10 posts
+                if checkpoint_manager.should_save_checkpoint(actual_completed - 1):
+                    current_results = results[:actual_completed]
+                    # Capture run_id from checkpoint creation and store in session state
+                    current_run_id = checkpoint_manager.create_checkpoint(
+                        url=url_input,
+                        scraped_links=scraped_posts,
+                        processed_results=current_results,
+                        last_index=actual_completed,
+                        total_posts=total_posts,
+                        run_id=st.session_state.current_run_id
+                    )
+                    # Update session state with the run_id
+                    st.session_state.current_run_id = current_run_id
+                    status_text.text(f"💾 Checkpoint saved - {actual_completed}/{total_posts} completed")
             
-            results = process_posts_batch(scraped_posts, progress_callback=update_ai_progress)
+            # Process remaining posts
+            new_results = process_posts_batch(posts_to_process, progress_callback=update_ai_progress_with_checkpoint)
+            results.extend(new_results)
             
             # Clustering section (can be enabled/disabled via ENABLE_CLUSTERING flag)
             if ENABLE_CLUSTERING:
@@ -406,14 +519,65 @@ if st.button("🚀 Analyze Blog Posts", type="primary"):
                 st.session_state.last_filename = filename
                 
                 storage_client.upload_from_text(filename, st.session_state.markdown_content)
+                
+                # Mark checkpoint as complete if there was one
+                if st.session_state.current_run_id:
+                    checkpoint_manager.mark_complete(st.session_state.current_run_id)
+                    # Clean up old completed checkpoints (keep only last 7 days)
+                    checkpoint_manager.cleanup_old_checkpoints(max_age_days=7)
+                    # Clear run_id to keep session state tidy
+                    st.session_state.current_run_id = None
+                
                 st.success(f"🎉 Successfully processed {len(results)} blog posts!")
                 st.info(f"📁 File saved: {filename}")
             except Exception as e:
+                # Still mark checkpoint complete even if storage fails
+                if st.session_state.current_run_id:
+                    checkpoint_manager.mark_complete(st.session_state.current_run_id)
+                    st.session_state.current_run_id = None
+                
                 st.success(f"🎉 Successfully processed {len(results)} blog posts!")
                 st.warning(f"⚠️ Could not save to persistent storage: {str(e)}")
             
         except Exception as e:
             st.error(f"An error occurred: {str(e)}")
+            
+            # Save partial results if processing failed
+            results_var = locals().get('results', [])
+            total_posts_var = locals().get('total_posts', 'unknown')
+            
+            if results_var:
+                try:
+                    st.warning(f"💾 Saving partial results ({len(results_var)} posts processed)...")
+                    
+                    # Create a partial markdown
+                    partial_markdown = f"# Partial Analysis\n\n**Partial results - processing interrupted**\n\n"
+                    partial_markdown += f"**Processed {len(results_var)} of {total_posts_var} posts**\n\n"
+                    
+                    # Simple category-based organization for partial results
+                    categories = {}
+                    for result in results_var:
+                        cat = result.get('category', 'Other')
+                        if cat not in categories:
+                            categories[cat] = []
+                        categories[cat].append(result)
+                    
+                    for category in sorted(categories.keys()):
+                        partial_markdown += f"\n## {category}\n\n"
+                        for post in categories[category]:
+                            partial_markdown += f"### {post['title']}\n\n"
+                            partial_markdown += f"**Source:** {post['url']}\n\n"
+                            partial_markdown += f"{post.get('summary', 'No summary available')}\n\n"
+                    
+                    # Try to save partial results
+                    storage_client = Client()
+                    partial_filename = f"PARTIAL_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
+                    storage_client.upload_from_text(partial_filename, partial_markdown)
+                    
+                    st.info(f"💾 Partial results saved as: {partial_filename}")
+                    st.info("You can resume this analysis from the incomplete checkpoint shown at the top of the page.")
+                except Exception as save_error:
+                    st.error(f"Could not save partial results: {save_error}")
 
 if st.session_state.processed_data:
     st.header("📊 Results")

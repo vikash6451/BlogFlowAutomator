@@ -12,6 +12,7 @@ The Blog Post Analyzer is an automated blog research tool that scrapes blog post
 - Extracts 5 types of deep insights per post for brainstorming: central takeaways, contrarian perspectives, unstated assumptions, potential experiments, and industry applications
 - Provides downloadable markdown reports and data exports optimized for ChatGPT Projects and Claude Skills
 - Uses Replit Object Storage for file persistence
+- **Checkpoint-based resilience:** Automatically saves progress every 10 posts and allows resuming from interruptions
 
 ## User Preferences
 
@@ -122,6 +123,32 @@ The application uses Streamlit's session state management to maintain processed 
 - API failures: Gracefully degrades to category-based organization
 
 **Alternatives Considered:** Simple retry without backoff (rejected due to continued rate limit hits); circuit breaker pattern (unnecessary for single-user tool)
+
+### Checkpoint System (`checkpoint_manager.py`)
+
+**Purpose:** Enable resilient blog analysis for large datasets (100+ posts) by saving incremental progress
+
+**CheckpointManager Class:**
+- **Storage:** Uses Replit Object Storage with `checkpoint_` prefix
+- **Checkpoint Interval:** Every 10 posts processed
+- **Data Stored:** run_id, URL, scraped_links, processed_results, last_index, total_posts, status, timestamp
+
+**User Flow:**
+1. **New Analysis:** Processing starts → checkpoint created after 10 posts → saves every 10 posts
+2. **Interruption:** If browser disconnects/API fails → checkpoint remains "in_progress"
+3. **Resume:** On app reload → incomplete checkpoints shown → click "Resume" → continues from last checkpoint
+4. **Completion:** All posts processed → marked "completed" → auto-cleanup of old checkpoints (7 days)
+
+**Implementation:**
+- **run_id:** Unique 8-character UUID per run, stored in session state
+- **Progress Callback:** Modified AI processing to save checkpoint every 10 posts
+- **Error Handling:** Partial results saved if processing fails mid-run
+- **Cleanup:** Automatic deletion of completed checkpoints >7 days old
+
+**Edge Cases:**
+- Failed checkpoint load → fallback to new analysis with error
+- Browser disconnection → checkpoint persists, resumable
+- Duplicate saves → reuses same run_id
 
 ## External Dependencies
 
