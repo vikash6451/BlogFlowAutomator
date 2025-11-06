@@ -376,17 +376,24 @@ if st.button("🚀 Analyze Blog Posts", type="primary"):
             
             st.session_state.markdown_content = "\n".join(markdown_lines)
             
-            # Save to Object Storage
+            # Save to Object Storage with descriptive filename
             try:
                 storage_client = Client()
                 timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-                filename = f"blog_analysis_{timestamp}.md"
+                
+                # Extract blog name from domain
+                blog_name = domain.replace('.', '_').replace('-', '_')
+                post_count = len(results)
+                
+                filename = f"{timestamp}_{blog_name}_{post_count}posts.md"
+                st.session_state.last_filename = filename
+                
                 storage_client.upload_from_text(filename, st.session_state.markdown_content)
                 st.success(f"🎉 Successfully processed {len(results)} blog posts!")
-                st.info(f"📁 Output saved to Object Storage: {filename}")
+                st.info(f"📁 File saved: {filename}")
             except Exception as e:
                 st.success(f"🎉 Successfully processed {len(results)} blog posts!")
-                st.warning(f"Note: Could not save to Object Storage: {str(e)}")
+                st.warning(f"⚠️ Could not save to persistent storage: {str(e)}")
             
         except Exception as e:
             st.error(f"An error occurred: {str(e)}")
@@ -405,7 +412,7 @@ if st.session_state.processed_data:
     
     if view_mode == "🎯 Topic Clusters (AI-Discovered)" and st.session_state.cluster_data:
         clusters = st.session_state.cluster_data['clusters']
-        metadata = st.session_state.cluster_metadata
+        metadata = st.session_state.cluster_metadata or {}
         
         col1, col2, col3 = st.columns(3)
         with col1:
@@ -419,7 +426,7 @@ if st.session_state.processed_data:
         
         for cluster_id in sorted(clusters.keys()):
             posts = clusters[cluster_id]
-            meta = metadata.get(cluster_id, {})
+            meta = metadata.get(cluster_id, {}) if metadata else {}
             label = meta.get('label', f'Topic {cluster_id + 1}')
             summary = meta.get('summary', 'A group of related posts')
             themes = meta.get('themes', [])
@@ -635,30 +642,57 @@ st.divider()
 
 # Show saved files from Object Storage
 st.header("📂 Saved Analysis Files")
+st.write("All previously analyzed blog reports are saved here for easy access across sessions.")
+
 try:
     storage_client = Client()
-    saved_files = storage_client.list()
+    saved_files = [str(f) for f in storage_client.list()]
     
     if saved_files:
-        st.write(f"Found {len(saved_files)} saved analysis file(s):")
+        # Sort files by timestamp (newest first)
+        saved_files.sort(reverse=True)
+        
+        st.success(f"📦 {len(saved_files)} saved analysis file(s) available")
+        
         for file in saved_files:
-            col1, col2 = st.columns([3, 1])
-            with col1:
-                st.text(file)
-            with col2:
-                if st.button("Download", key=f"dl_{file}"):
-                    content = storage_client.download_as_text(file)
-                    st.download_button(
-                        label="⬇️ Save File",
-                        data=content,
-                        file_name=file,
-                        mime="text/markdown",
-                        key=f"save_{file}"
-                    )
+            # Parse filename to show readable info
+            try:
+                parts = file.replace('.md', '').split('_')
+                if len(parts) >= 3:
+                    timestamp_str = parts[0]
+                    # Format: YYYYMMDD_HHMMSS -> YYYY-MM-DD HH:MM:SS
+                    if len(timestamp_str) == 14:
+                        date_part = f"{timestamp_str[:4]}-{timestamp_str[4:6]}-{timestamp_str[6:8]}"
+                        time_part = f"{timestamp_str[8:10]}:{timestamp_str[10:12]}:{timestamp_str[12:14]}"
+                        readable_date = f"{date_part} {time_part}"
+                    else:
+                        readable_date = timestamp_str
+                    
+                    blog_name = ' '.join(parts[1:-1]).replace('_', '.')
+                    post_info = parts[-1]
+                    
+                    display_name = f"📄 {readable_date} - {blog_name} ({post_info})"
+                else:
+                    display_name = f"📄 {file}"
+            except:
+                display_name = f"📄 {file}"
+            
+            # Create download button for each file
+            content = storage_client.download_as_text(file)
+            st.download_button(
+                label=display_name,
+                data=content,
+                file_name=file,
+                mime="text/markdown",
+                key=f"download_{file}",
+                use_container_width=True
+            )
     else:
         st.info("No saved files yet. Run an analysis to create your first file!")
+        
 except Exception as e:
-    st.info("Object Storage not configured. Files will only be available for download during the session.")
+    st.warning(f"⚠️ Persistent storage not available: {str(e)}")
+    st.info("💡 Files from the current session are available in the Export section above.")
 
 st.divider()
 st.caption("Built with Streamlit • Powered by Claude AI via Replit AI Integrations")
