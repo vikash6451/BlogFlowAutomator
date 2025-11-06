@@ -94,7 +94,8 @@ if st.session_state.resume_checkpoint:
     checkpoint_data = st.session_state.checkpoint_manager.load_checkpoint(st.session_state.resume_checkpoint)
     
     if checkpoint_data:
-        st.info(f"📥 Resuming from checkpoint: {checkpoint_data['progress']} posts completed")
+        progress_text = f"{checkpoint_data.get('last_index', 0)}/{checkpoint_data.get('total_posts', 0)}"
+        st.info(f"📥 Resuming from checkpoint: {progress_text} posts completed")
         
         # Pre-populate the URL
         url_input = checkpoint_data['url']
