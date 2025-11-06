@@ -1,7 +1,4 @@
 import streamlit as st
-from scraper import extract_blog_links, scrape_blog_post
-from ai_processor import process_posts_batch, generate_cluster_labels
-from embedding_cluster import cluster_blog_posts
 from datetime import datetime
 import os
 from replit.object_storage import Client
@@ -11,6 +8,17 @@ import re
 
 # Configuration: Set to True to enable OpenAI embedding clustering
 ENABLE_CLUSTERING = False
+
+# Configuration: Set to True to use OpenAI for AI processing instead of Claude
+USE_OPENAI = False
+
+# Set environment variable for ai_processor to read
+os.environ["USE_OPENAI"] = str(USE_OPENAI)
+
+# Import after setting environment variables
+from scraper import extract_blog_links, scrape_blog_post
+from ai_processor import process_posts_batch, generate_cluster_labels
+from embedding_cluster import cluster_blog_posts
 
 st.set_page_config(
     page_title="Blog Post Analyzer",

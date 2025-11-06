@@ -52,14 +52,18 @@ The application uses Streamlit's session state management to maintain processed 
 - **Cons:** May struggle with heavily JavaScript-rendered content
 
 **AI Processing Layer** (`ai_processor.py`)
-- **Primary Model:** Anthropic Claude API
+- **Switchable AI Models:** Claude (Anthropic) or GPT-4o (OpenAI) - configurable via `USE_OPENAI` flag in app.py
+- **Default Model:** Claude Sonnet 4.5 (Anthropic)
+- **Alternative Model:** GPT-4o (OpenAI) with structured JSON outputs
 - **Problem Addressed:** Automated categorization, summarization, and deep insight extraction at scale
 - **Solution:** Batch processing with concurrent requests (ThreadPoolExecutor); two sequential AI calls per post
 - **Rate Limiting Strategy:** Exponential backoff with 7 retry attempts
 - **Categorization:** Fixed taxonomy (Technology, Business, Marketing, Design, etc.)
 - **Deep Insights:** Extracts 5 analysis dimensions - central takeaways, contrarian perspectives, unstated assumptions, potential experiments, industry applications
 - **Output:** Structured JSON with fallback parsing for robust error handling
-- **Pros:** Comprehensive analysis for brainstorming; structured output via JSON; robust error handling
+- **API Key Management:** Uses Replit AI Integrations for Claude, account-level OPENAI_API_KEY for OpenAI
+- **Switching:** Change `USE_OPENAI = True` in app.py to switch from Claude to OpenAI
+- **Pros:** Comprehensive analysis for brainstorming; structured output via JSON; robust error handling; model flexibility
 - **Cons:** API costs scale with post volume; ~2x cost per post due to dual analysis calls
 
 **Clustering Layer** (`embedding_cluster.py`)
