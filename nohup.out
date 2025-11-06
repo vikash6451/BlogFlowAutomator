@@ -1,0 +1,496 @@
+
+Collecting usage statistics. To deactivate, set browser.gatherUsageStats to false.
+
+
+  You can now view your Streamlit app in your browser.
+
+  URL: http://0.0.0.0:8501
+
+  For better performance, install the Watchdog module:
+
+  $ xcode-select --install
+  $ pip install watchdog
+            
+/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+Error processing post: "Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted"
+Full traceback: Traceback (most recent call last):
+  File "/Users/vikashkumar/BlogFlowAutomator/ai_processor.py", line 363, in process_posts_batch
+    idx, result = future.result()
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/concurrent/futures/_base.py", line 438, in result
+    return self.__get_result()
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/concurrent/futures/_base.py", line 390, in __get_result
+    raise self._exception
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/concurrent/futures/thread.py", line 52, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "/Users/vikashkumar/BlogFlowAutomator/ai_processor.py", line 348, in process_single_post
+    summary_result = categorize_and_summarize_post(content, url, title)
+  File "/Users/vikashkumar/BlogFlowAutomator/ai_processor.py", line 274, in categorize_and_summarize_post
+    return categorize_and_summarize_post_claude(content, url, title)
+  File "/Users/vikashkumar/BlogFlowAutomator/ai_processor.py", line 212, in categorize_and_summarize_post_claude
+    return process_with_retry()
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/tenacity/__init__.py", line 338, in wrapped_f
+    return copy(f, *args, **kw)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/tenacity/__init__.py", line 477, in __call__
+    do = self.iter(retry_state=retry_state)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/tenacity/__init__.py", line 378, in iter
+    result = action(retry_state)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/tenacity/__init__.py", line 400, in <lambda>
+    self._add_action_func(lambda rs: rs.outcome.result())
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/concurrent/futures/_base.py", line 438, in result
+    return self.__get_result()
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/concurrent/futures/_base.py", line 390, in __get_result
+    raise self._exception
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/tenacity/__init__.py", line 480, in __call__
+    result = fn(*args, **kwargs)
+  File "/Users/vikashkumar/BlogFlowAutomator/ai_processor.py", line 184, in process_with_retry
+    message = claude_client.messages.create(
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_utils/_utils.py", line 282, in wrapper
+    return func(*args, **kwargs)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/resources/messages/messages.py", line 927, in create
+    return self._post(
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_base_client.py", line 1326, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_base_client.py", line 1035, in request
+    request = self._build_request(options, retries_taken=retries_taken)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_base_client.py", line 506, in _build_request
+    headers = self._build_headers(options, retries_taken=retries_taken)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_base_client.py", line 447, in _build_headers
+    self._validate_headers(headers_dict, custom_headers)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_client.py", line 196, in _validate_headers
+    raise TypeError(
+TypeError: "Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted"
+
+Error processing post: "Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted"
+Full traceback: Traceback (most recent call last):
+  File "/Users/vikashkumar/BlogFlowAutomator/ai_processor.py", line 363, in process_posts_batch
+    idx, result = future.result()
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/concurrent/futures/_base.py", line 438, in result
+    return self.__get_result()
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/concurrent/futures/_base.py", line 390, in __get_result
+    raise self._exception
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/concurrent/futures/thread.py", line 52, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "/Users/vikashkumar/BlogFlowAutomator/ai_processor.py", line 348, in process_single_post
+    summary_result = categorize_and_summarize_post(content, url, title)
+  File "/Users/vikashkumar/BlogFlowAutomator/ai_processor.py", line 274, in categorize_and_summarize_post
+    return categorize_and_summarize_post_claude(content, url, title)
+  File "/Users/vikashkumar/BlogFlowAutomator/ai_processor.py", line 212, in categorize_and_summarize_post_claude
+    return process_with_retry()
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/tenacity/__init__.py", line 338, in wrapped_f
+    return copy(f, *args, **kw)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/tenacity/__init__.py", line 477, in __call__
+    do = self.iter(retry_state=retry_state)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/tenacity/__init__.py", line 378, in iter
+    result = action(retry_state)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/tenacity/__init__.py", line 400, in <lambda>
+    self._add_action_func(lambda rs: rs.outcome.result())
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/concurrent/futures/_base.py", line 438, in result
+    return self.__get_result()
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/concurrent/futures/_base.py", line 390, in __get_result
+    raise self._exception
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/tenacity/__init__.py", line 480, in __call__
+    result = fn(*args, **kwargs)
+  File "/Users/vikashkumar/BlogFlowAutomator/ai_processor.py", line 184, in process_with_retry
+    message = claude_client.messages.create(
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_utils/_utils.py", line 282, in wrapper
+    return func(*args, **kwargs)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/resources/messages/messages.py", line 927, in create
+    return self._post(
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_base_client.py", line 1326, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_base_client.py", line 1035, in request
+    request = self._build_request(options, retries_taken=retries_taken)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_base_client.py", line 506, in _build_request
+    headers = self._build_headers(options, retries_taken=retries_taken)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_base_client.py", line 447, in _build_headers
+    self._validate_headers(headers_dict, custom_headers)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_client.py", line 196, in _validate_headers
+    raise TypeError(
+TypeError: "Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted"
+
+Error processing post: "Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted"
+Full traceback: Traceback (most recent call last):
+  File "/Users/vikashkumar/BlogFlowAutomator/ai_processor.py", line 363, in process_posts_batch
+    idx, result = future.result()
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/concurrent/futures/_base.py", line 438, in result
+    return self.__get_result()
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/concurrent/futures/_base.py", line 390, in __get_result
+    raise self._exception
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/concurrent/futures/thread.py", line 52, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "/Users/vikashkumar/BlogFlowAutomator/ai_processor.py", line 348, in process_single_post
+    summary_result = categorize_and_summarize_post(content, url, title)
+  File "/Users/vikashkumar/BlogFlowAutomator/ai_processor.py", line 274, in categorize_and_summarize_post
+    return categorize_and_summarize_post_claude(content, url, title)
+  File "/Users/vikashkumar/BlogFlowAutomator/ai_processor.py", line 212, in categorize_and_summarize_post_claude
+    return process_with_retry()
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/tenacity/__init__.py", line 338, in wrapped_f
+    return copy(f, *args, **kw)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/tenacity/__init__.py", line 477, in __call__
+    do = self.iter(retry_state=retry_state)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/tenacity/__init__.py", line 378, in iter
+    result = action(retry_state)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/tenacity/__init__.py", line 400, in <lambda>
+    self._add_action_func(lambda rs: rs.outcome.result())
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/concurrent/futures/_base.py", line 438, in result
+    return self.__get_result()
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/concurrent/futures/_base.py", line 390, in __get_result
+    raise self._exception
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/tenacity/__init__.py", line 480, in __call__
+    result = fn(*args, **kwargs)
+  File "/Users/vikashkumar/BlogFlowAutomator/ai_processor.py", line 184, in process_with_retry
+    message = claude_client.messages.create(
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_utils/_utils.py", line 282, in wrapper
+    return func(*args, **kwargs)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/resources/messages/messages.py", line 927, in create
+    return self._post(
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_base_client.py", line 1326, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_base_client.py", line 1035, in request
+    request = self._build_request(options, retries_taken=retries_taken)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_base_client.py", line 506, in _build_request
+    headers = self._build_headers(options, retries_taken=retries_taken)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_base_client.py", line 447, in _build_headers
+    self._validate_headers(headers_dict, custom_headers)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_client.py", line 196, in _validate_headers
+    raise TypeError(
+TypeError: "Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted"
+
+Error processing post: "Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted"
+Full traceback: Traceback (most recent call last):
+  File "/Users/vikashkumar/BlogFlowAutomator/ai_processor.py", line 363, in process_posts_batch
+    idx, result = future.result()
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/concurrent/futures/_base.py", line 438, in result
+    return self.__get_result()
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/concurrent/futures/_base.py", line 390, in __get_result
+    raise self._exception
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/concurrent/futures/thread.py", line 52, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "/Users/vikashkumar/BlogFlowAutomator/ai_processor.py", line 348, in process_single_post
+    summary_result = categorize_and_summarize_post(content, url, title)
+  File "/Users/vikashkumar/BlogFlowAutomator/ai_processor.py", line 274, in categorize_and_summarize_post
+    return categorize_and_summarize_post_claude(content, url, title)
+  File "/Users/vikashkumar/BlogFlowAutomator/ai_processor.py", line 212, in categorize_and_summarize_post_claude
+    return process_with_retry()
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/tenacity/__init__.py", line 338, in wrapped_f
+    return copy(f, *args, **kw)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/tenacity/__init__.py", line 477, in __call__
+    do = self.iter(retry_state=retry_state)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/tenacity/__init__.py", line 378, in iter
+    result = action(retry_state)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/tenacity/__init__.py", line 400, in <lambda>
+    self._add_action_func(lambda rs: rs.outcome.result())
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/concurrent/futures/_base.py", line 438, in result
+    return self.__get_result()
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/concurrent/futures/_base.py", line 390, in __get_result
+    raise self._exception
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/tenacity/__init__.py", line 480, in __call__
+    result = fn(*args, **kwargs)
+  File "/Users/vikashkumar/BlogFlowAutomator/ai_processor.py", line 184, in process_with_retry
+    message = claude_client.messages.create(
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_utils/_utils.py", line 282, in wrapper
+    return func(*args, **kwargs)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/resources/messages/messages.py", line 927, in create
+    return self._post(
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_base_client.py", line 1326, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_base_client.py", line 1035, in request
+    request = self._build_request(options, retries_taken=retries_taken)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_base_client.py", line 506, in _build_request
+    headers = self._build_headers(options, retries_taken=retries_taken)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_base_client.py", line 447, in _build_headers
+    self._validate_headers(headers_dict, custom_headers)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_client.py", line 196, in _validate_headers
+    raise TypeError(
+TypeError: "Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted"
+
+Error processing post: "Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted"
+Full traceback: Traceback (most recent call last):
+  File "/Users/vikashkumar/BlogFlowAutomator/ai_processor.py", line 363, in process_posts_batch
+    idx, result = future.result()
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/concurrent/futures/_base.py", line 438, in result
+    return self.__get_result()
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/concurrent/futures/_base.py", line 390, in __get_result
+    raise self._exception
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/concurrent/futures/thread.py", line 52, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "/Users/vikashkumar/BlogFlowAutomator/ai_processor.py", line 348, in process_single_post
+    summary_result = categorize_and_summarize_post(content, url, title)
+  File "/Users/vikashkumar/BlogFlowAutomator/ai_processor.py", line 274, in categorize_and_summarize_post
+    return categorize_and_summarize_post_claude(content, url, title)
+  File "/Users/vikashkumar/BlogFlowAutomator/ai_processor.py", line 212, in categorize_and_summarize_post_claude
+    return process_with_retry()
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/tenacity/__init__.py", line 338, in wrapped_f
+    return copy(f, *args, **kw)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/tenacity/__init__.py", line 477, in __call__
+    do = self.iter(retry_state=retry_state)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/tenacity/__init__.py", line 378, in iter
+    result = action(retry_state)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/tenacity/__init__.py", line 400, in <lambda>
+    self._add_action_func(lambda rs: rs.outcome.result())
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/concurrent/futures/_base.py", line 438, in result
+    return self.__get_result()
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/concurrent/futures/_base.py", line 390, in __get_result
+    raise self._exception
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/tenacity/__init__.py", line 480, in __call__
+    result = fn(*args, **kwargs)
+  File "/Users/vikashkumar/BlogFlowAutomator/ai_processor.py", line 184, in process_with_retry
+    message = claude_client.messages.create(
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_utils/_utils.py", line 282, in wrapper
+    return func(*args, **kwargs)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/resources/messages/messages.py", line 927, in create
+    return self._post(
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_base_client.py", line 1326, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_base_client.py", line 1035, in request
+    request = self._build_request(options, retries_taken=retries_taken)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_base_client.py", line 506, in _build_request
+    headers = self._build_headers(options, retries_taken=retries_taken)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_base_client.py", line 447, in _build_headers
+    self._validate_headers(headers_dict, custom_headers)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_client.py", line 196, in _validate_headers
+    raise TypeError(
+TypeError: "Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted"
+
+Error processing post: "Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted"
+Full traceback: Traceback (most recent call last):
+  File "/Users/vikashkumar/BlogFlowAutomator/ai_processor.py", line 363, in process_posts_batch
+    idx, result = future.result()
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/concurrent/futures/_base.py", line 438, in result
+    return self.__get_result()
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/concurrent/futures/_base.py", line 390, in __get_result
+    raise self._exception
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/concurrent/futures/thread.py", line 52, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "/Users/vikashkumar/BlogFlowAutomator/ai_processor.py", line 348, in process_single_post
+    summary_result = categorize_and_summarize_post(content, url, title)
+  File "/Users/vikashkumar/BlogFlowAutomator/ai_processor.py", line 274, in categorize_and_summarize_post
+    return categorize_and_summarize_post_claude(content, url, title)
+  File "/Users/vikashkumar/BlogFlowAutomator/ai_processor.py", line 212, in categorize_and_summarize_post_claude
+    return process_with_retry()
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/tenacity/__init__.py", line 338, in wrapped_f
+    return copy(f, *args, **kw)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/tenacity/__init__.py", line 477, in __call__
+    do = self.iter(retry_state=retry_state)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/tenacity/__init__.py", line 378, in iter
+    result = action(retry_state)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/tenacity/__init__.py", line 400, in <lambda>
+    self._add_action_func(lambda rs: rs.outcome.result())
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/concurrent/futures/_base.py", line 438, in result
+    return self.__get_result()
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/concurrent/futures/_base.py", line 390, in __get_result
+    raise self._exception
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/tenacity/__init__.py", line 480, in __call__
+    result = fn(*args, **kwargs)
+  File "/Users/vikashkumar/BlogFlowAutomator/ai_processor.py", line 184, in process_with_retry
+    message = claude_client.messages.create(
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_utils/_utils.py", line 282, in wrapper
+    return func(*args, **kwargs)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/resources/messages/messages.py", line 927, in create
+    return self._post(
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_base_client.py", line 1326, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_base_client.py", line 1035, in request
+    request = self._build_request(options, retries_taken=retries_taken)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_base_client.py", line 506, in _build_request
+    headers = self._build_headers(options, retries_taken=retries_taken)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_base_client.py", line 447, in _build_headers
+    self._validate_headers(headers_dict, custom_headers)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_client.py", line 196, in _validate_headers
+    raise TypeError(
+TypeError: "Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted"
+
+Error processing post: "Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted"
+Full traceback: Traceback (most recent call last):
+  File "/Users/vikashkumar/BlogFlowAutomator/ai_processor.py", line 363, in process_posts_batch
+    idx, result = future.result()
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/concurrent/futures/_base.py", line 438, in result
+    return self.__get_result()
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/concurrent/futures/_base.py", line 390, in __get_result
+    raise self._exception
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/concurrent/futures/thread.py", line 52, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "/Users/vikashkumar/BlogFlowAutomator/ai_processor.py", line 348, in process_single_post
+    summary_result = categorize_and_summarize_post(content, url, title)
+  File "/Users/vikashkumar/BlogFlowAutomator/ai_processor.py", line 274, in categorize_and_summarize_post
+    return categorize_and_summarize_post_claude(content, url, title)
+  File "/Users/vikashkumar/BlogFlowAutomator/ai_processor.py", line 212, in categorize_and_summarize_post_claude
+    return process_with_retry()
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/tenacity/__init__.py", line 338, in wrapped_f
+    return copy(f, *args, **kw)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/tenacity/__init__.py", line 477, in __call__
+    do = self.iter(retry_state=retry_state)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/tenacity/__init__.py", line 378, in iter
+    result = action(retry_state)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/tenacity/__init__.py", line 400, in <lambda>
+    self._add_action_func(lambda rs: rs.outcome.result())
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/concurrent/futures/_base.py", line 438, in result
+    return self.__get_result()
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/concurrent/futures/_base.py", line 390, in __get_result
+    raise self._exception
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/tenacity/__init__.py", line 480, in __call__
+    result = fn(*args, **kwargs)
+  File "/Users/vikashkumar/BlogFlowAutomator/ai_processor.py", line 184, in process_with_retry
+    message = claude_client.messages.create(
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_utils/_utils.py", line 282, in wrapper
+    return func(*args, **kwargs)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/resources/messages/messages.py", line 927, in create
+    return self._post(
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_base_client.py", line 1326, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_base_client.py", line 1035, in request
+    request = self._build_request(options, retries_taken=retries_taken)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_base_client.py", line 506, in _build_request
+    headers = self._build_headers(options, retries_taken=retries_taken)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_base_client.py", line 447, in _build_headers
+    self._validate_headers(headers_dict, custom_headers)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_client.py", line 196, in _validate_headers
+    raise TypeError(
+TypeError: "Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted"
+
+Error processing post: "Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted"
+Full traceback: Traceback (most recent call last):
+  File "/Users/vikashkumar/BlogFlowAutomator/ai_processor.py", line 363, in process_posts_batch
+    idx, result = future.result()
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/concurrent/futures/_base.py", line 438, in result
+    return self.__get_result()
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/concurrent/futures/_base.py", line 390, in __get_result
+    raise self._exception
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/concurrent/futures/thread.py", line 52, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "/Users/vikashkumar/BlogFlowAutomator/ai_processor.py", line 348, in process_single_post
+    summary_result = categorize_and_summarize_post(content, url, title)
+  File "/Users/vikashkumar/BlogFlowAutomator/ai_processor.py", line 274, in categorize_and_summarize_post
+    return categorize_and_summarize_post_claude(content, url, title)
+  File "/Users/vikashkumar/BlogFlowAutomator/ai_processor.py", line 212, in categorize_and_summarize_post_claude
+    return process_with_retry()
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/tenacity/__init__.py", line 338, in wrapped_f
+    return copy(f, *args, **kw)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/tenacity/__init__.py", line 477, in __call__
+    do = self.iter(retry_state=retry_state)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/tenacity/__init__.py", line 378, in iter
+    result = action(retry_state)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/tenacity/__init__.py", line 400, in <lambda>
+    self._add_action_func(lambda rs: rs.outcome.result())
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/concurrent/futures/_base.py", line 438, in result
+    return self.__get_result()
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/concurrent/futures/_base.py", line 390, in __get_result
+    raise self._exception
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/tenacity/__init__.py", line 480, in __call__
+    result = fn(*args, **kwargs)
+  File "/Users/vikashkumar/BlogFlowAutomator/ai_processor.py", line 184, in process_with_retry
+    message = claude_client.messages.create(
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_utils/_utils.py", line 282, in wrapper
+    return func(*args, **kwargs)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/resources/messages/messages.py", line 927, in create
+    return self._post(
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_base_client.py", line 1326, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_base_client.py", line 1035, in request
+    request = self._build_request(options, retries_taken=retries_taken)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_base_client.py", line 506, in _build_request
+    headers = self._build_headers(options, retries_taken=retries_taken)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_base_client.py", line 447, in _build_headers
+    self._validate_headers(headers_dict, custom_headers)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_client.py", line 196, in _validate_headers
+    raise TypeError(
+TypeError: "Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted"
+
+Error processing post: "Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted"
+Full traceback: Traceback (most recent call last):
+  File "/Users/vikashkumar/BlogFlowAutomator/ai_processor.py", line 363, in process_posts_batch
+    idx, result = future.result()
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/concurrent/futures/_base.py", line 438, in result
+    return self.__get_result()
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/concurrent/futures/_base.py", line 390, in __get_result
+    raise self._exception
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/concurrent/futures/thread.py", line 52, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "/Users/vikashkumar/BlogFlowAutomator/ai_processor.py", line 348, in process_single_post
+    summary_result = categorize_and_summarize_post(content, url, title)
+  File "/Users/vikashkumar/BlogFlowAutomator/ai_processor.py", line 274, in categorize_and_summarize_post
+    return categorize_and_summarize_post_claude(content, url, title)
+  File "/Users/vikashkumar/BlogFlowAutomator/ai_processor.py", line 212, in categorize_and_summarize_post_claude
+    return process_with_retry()
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/tenacity/__init__.py", line 338, in wrapped_f
+    return copy(f, *args, **kw)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/tenacity/__init__.py", line 477, in __call__
+    do = self.iter(retry_state=retry_state)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/tenacity/__init__.py", line 378, in iter
+    result = action(retry_state)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/tenacity/__init__.py", line 400, in <lambda>
+    self._add_action_func(lambda rs: rs.outcome.result())
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/concurrent/futures/_base.py", line 438, in result
+    return self.__get_result()
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/concurrent/futures/_base.py", line 390, in __get_result
+    raise self._exception
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/tenacity/__init__.py", line 480, in __call__
+    result = fn(*args, **kwargs)
+  File "/Users/vikashkumar/BlogFlowAutomator/ai_processor.py", line 184, in process_with_retry
+    message = claude_client.messages.create(
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_utils/_utils.py", line 282, in wrapper
+    return func(*args, **kwargs)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/resources/messages/messages.py", line 927, in create
+    return self._post(
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_base_client.py", line 1326, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_base_client.py", line 1035, in request
+    request = self._build_request(options, retries_taken=retries_taken)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_base_client.py", line 506, in _build_request
+    headers = self._build_headers(options, retries_taken=retries_taken)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_base_client.py", line 447, in _build_headers
+    self._validate_headers(headers_dict, custom_headers)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_client.py", line 196, in _validate_headers
+    raise TypeError(
+TypeError: "Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted"
+
+Error processing post: "Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted"
+Full traceback: Traceback (most recent call last):
+  File "/Users/vikashkumar/BlogFlowAutomator/ai_processor.py", line 363, in process_posts_batch
+    idx, result = future.result()
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/concurrent/futures/_base.py", line 438, in result
+    return self.__get_result()
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/concurrent/futures/_base.py", line 390, in __get_result
+    raise self._exception
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/concurrent/futures/thread.py", line 52, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "/Users/vikashkumar/BlogFlowAutomator/ai_processor.py", line 348, in process_single_post
+    summary_result = categorize_and_summarize_post(content, url, title)
+  File "/Users/vikashkumar/BlogFlowAutomator/ai_processor.py", line 274, in categorize_and_summarize_post
+    return categorize_and_summarize_post_claude(content, url, title)
+  File "/Users/vikashkumar/BlogFlowAutomator/ai_processor.py", line 212, in categorize_and_summarize_post_claude
+    return process_with_retry()
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/tenacity/__init__.py", line 338, in wrapped_f
+    return copy(f, *args, **kw)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/tenacity/__init__.py", line 477, in __call__
+    do = self.iter(retry_state=retry_state)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/tenacity/__init__.py", line 378, in iter
+    result = action(retry_state)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/tenacity/__init__.py", line 400, in <lambda>
+    self._add_action_func(lambda rs: rs.outcome.result())
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/concurrent/futures/_base.py", line 438, in result
+    return self.__get_result()
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/concurrent/futures/_base.py", line 390, in __get_result
+    raise self._exception
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/tenacity/__init__.py", line 480, in __call__
+    result = fn(*args, **kwargs)
+  File "/Users/vikashkumar/BlogFlowAutomator/ai_processor.py", line 184, in process_with_retry
+    message = claude_client.messages.create(
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_utils/_utils.py", line 282, in wrapper
+    return func(*args, **kwargs)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/resources/messages/messages.py", line 927, in create
+    return self._post(
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_base_client.py", line 1326, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_base_client.py", line 1035, in request
+    request = self._build_request(options, retries_taken=retries_taken)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_base_client.py", line 506, in _build_request
+    headers = self._build_headers(options, retries_taken=retries_taken)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_base_client.py", line 447, in _build_headers
+    self._validate_headers(headers_dict, custom_headers)
+  File "/Users/vikashkumar/Library/Python/3.9/lib/python/site-packages/anthropic/_client.py", line 196, in _validate_headers
+    raise TypeError(
+TypeError: "Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted"
+
+  Stopping...

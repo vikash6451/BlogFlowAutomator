@@ -6,8 +6,11 @@ Handles saving and loading incremental progress to enable resume functionality.
 import json
 from datetime import datetime
 from typing import Dict, List, Optional, Any
-from replit.object_storage import Client
+from storage_adapter import Client
 import uuid
+
+# Storage is always available with the adapter
+REPLIT_STORAGE_AVAILABLE = True
 
 
 class CheckpointManager:

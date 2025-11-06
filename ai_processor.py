@@ -9,13 +9,29 @@ import json
 # Get USE_OPENAI flag from environment (set by app.py)
 USE_OPENAI = os.environ.get("USE_OPENAI", "False").lower() == "true"
 
-# Claude client setup
-AI_INTEGRATIONS_ANTHROPIC_API_KEY = os.environ.get("AI_INTEGRATIONS_ANTHROPIC_API_KEY")
-AI_INTEGRATIONS_ANTHROPIC_BASE_URL = os.environ.get("AI_INTEGRATIONS_ANTHROPIC_BASE_URL")
+# Claude client setup - try multiple sources for API key
+import streamlit as st
+
+# Try to get API key from multiple sources
+ANTHROPIC_API_KEY = None
+ANTHROPIC_BASE_URL = None
+
+# 1. Try Streamlit secrets (for local dev with secrets.toml)
+if hasattr(st, 'secrets') and 'ANTHROPIC_API_KEY' in st.secrets:
+    ANTHROPIC_API_KEY = st.secrets['ANTHROPIC_API_KEY']
+    ANTHROPIC_BASE_URL = st.secrets.get('ANTHROPIC_BASE_URL', None)
+# 2. Try Replit AI Integrations env vars
+elif os.environ.get("AI_INTEGRATIONS_ANTHROPIC_API_KEY"):
+    ANTHROPIC_API_KEY = os.environ.get("AI_INTEGRATIONS_ANTHROPIC_API_KEY")
+    ANTHROPIC_BASE_URL = os.environ.get("AI_INTEGRATIONS_ANTHROPIC_BASE_URL")
+# 3. Try standard env var
+else:
+    ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
+    ANTHROPIC_BASE_URL = os.environ.get("ANTHROPIC_BASE_URL")
 
 claude_client = Anthropic(
-    api_key=AI_INTEGRATIONS_ANTHROPIC_API_KEY,
-    base_url=AI_INTEGRATIONS_ANTHROPIC_BASE_URL
+    api_key=ANTHROPIC_API_KEY,
+    base_url=ANTHROPIC_BASE_URL
 )
 
 # OpenAI client setup

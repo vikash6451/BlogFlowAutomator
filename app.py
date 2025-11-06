@@ -1,10 +1,13 @@
 import streamlit as st
 from datetime import datetime
 import os
-from replit.object_storage import Client
+from storage_adapter import Client
 import zipfile
 import io
 import re
+
+# Storage is always available with the adapter
+REPLIT_STORAGE_AVAILABLE = True
 
 # Configuration: Set to True to enable OpenAI embedding clustering
 ENABLE_CLUSTERING = False
@@ -508,37 +511,40 @@ if st.button("🚀 Analyze Blog Posts", type="primary") or process_resume:
             st.session_state.markdown_content = "\n".join(markdown_lines)
             
             # Save to Object Storage with descriptive filename
-            try:
-                storage_client = Client()
-                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-                
-                # Extract blog name from domain
-                blog_name = domain.replace('.', '_').replace('-', '_')
-                post_count = len(results)
-                
-                filename = f"{timestamp}_{blog_name}_{post_count}posts.md"
-                st.session_state.last_filename = filename
-                
-                storage_client.upload_from_text(filename, st.session_state.markdown_content)
-                
-                # Mark checkpoint as complete if there was one
-                if st.session_state.current_run_id:
-                    checkpoint_manager.mark_complete(st.session_state.current_run_id)
-                    # Clean up old completed checkpoints (keep only last 7 days)
-                    checkpoint_manager.cleanup_old_checkpoints(max_age_days=7)
-                    # Clear run_id to keep session state tidy
-                    st.session_state.current_run_id = None
-                
+            if REPLIT_STORAGE_AVAILABLE:
+                try:
+                    storage_client = Client()
+                    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                    
+                    # Extract blog name from domain
+                    blog_name = domain.replace('.', '_').replace('-', '_')
+                    post_count = len(results)
+                    
+                    filename = f"{timestamp}_{blog_name}_{post_count}posts.md"
+                    st.session_state.last_filename = filename
+                    
+                    storage_client.upload_from_text(filename, st.session_state.markdown_content)
+                    
+                    # Mark checkpoint as complete if there was one
+                    if st.session_state.current_run_id:
+                        checkpoint_manager.mark_complete(st.session_state.current_run_id)
+                        # Clean up old completed checkpoints (keep only last 7 days)
+                        checkpoint_manager.cleanup_old_checkpoints(max_age_days=7)
+                        # Clear run_id to keep session state tidy
+                        st.session_state.current_run_id = None
+                    
+                    st.success(f"🎉 Successfully processed {len(results)} blog posts!")
+                    st.info(f"📁 File saved: {filename}")
+                except Exception as e:
+                    # Still mark checkpoint complete even if storage fails
+                    if st.session_state.current_run_id:
+                        checkpoint_manager.mark_complete(st.session_state.current_run_id)
+                        st.session_state.current_run_id = None
+                    
+                    st.success(f"🎉 Successfully processed {len(results)} blog posts!")
+                    st.warning(f"⚠️ Could not save to persistent storage: {str(e)}")
+            else:
                 st.success(f"🎉 Successfully processed {len(results)} blog posts!")
-                st.info(f"📁 File saved: {filename}")
-            except Exception as e:
-                # Still mark checkpoint complete even if storage fails
-                if st.session_state.current_run_id:
-                    checkpoint_manager.mark_complete(st.session_state.current_run_id)
-                    st.session_state.current_run_id = None
-                
-                st.success(f"🎉 Successfully processed {len(results)} blog posts!")
-                st.warning(f"⚠️ Could not save to persistent storage: {str(e)}")
             
         except Exception as e:
             st.error(f"An error occurred: {str(e)}")
@@ -571,12 +577,15 @@ if st.button("🚀 Analyze Blog Posts", type="primary") or process_resume:
                             partial_markdown += f"{post.get('summary', 'No summary available')}\n\n"
                     
                     # Try to save partial results
-                    storage_client = Client()
-                    partial_filename = f"PARTIAL_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
-                    storage_client.upload_from_text(partial_filename, partial_markdown)
-                    
-                    st.info(f"💾 Partial results saved as: {partial_filename}")
-                    st.info("You can resume this analysis from the incomplete checkpoint shown at the top of the page.")
+                    if REPLIT_STORAGE_AVAILABLE:
+                        storage_client = Client()
+                        partial_filename = f"PARTIAL_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
+                        storage_client.upload_from_text(partial_filename, partial_markdown)
+                        
+                        st.info(f"💾 Partial results saved as: {partial_filename}")
+                        st.info("You can resume this analysis from the incomplete checkpoint shown at the top of the page.")
+                    else:
+                        st.info("💾 Partial results available for download below")
                 except Exception as save_error:
                     st.error(f"Could not save partial results: {save_error}")
 
@@ -823,61 +832,62 @@ if st.session_state.processed_data:
 st.divider()
 
 # Show saved files from Object Storage
-st.header("📂 Saved Analysis Files")
-st.write("All previously analyzed blog reports are saved here for easy access across sessions.")
+if REPLIT_STORAGE_AVAILABLE:
+    st.header("📂 Saved Analysis Files")
+    st.write("All previously analyzed blog reports are saved here for easy access across sessions.")
 
-try:
-    storage_client = Client()
-    saved_files = [f.name for f in storage_client.list()]
-    
-    if saved_files:
-        # Sort files by timestamp (newest first)
-        saved_files.sort(reverse=True)
+    try:
+        storage_client = Client()
+        saved_files = [f.name for f in storage_client.list()]
         
-        st.success(f"📦 {len(saved_files)} saved analysis file(s) available")
-        
-        for file in saved_files:
-            # Parse filename to show readable info
-            try:
-                parts = file.replace('.md', '').split('_')
-                if len(parts) >= 3:
-                    timestamp_str = parts[0]
-                    # Format: YYYYMMDD_HHMMSS -> YYYY-MM-DD HH:MM:SS
-                    if len(timestamp_str) == 14:
-                        date_part = f"{timestamp_str[:4]}-{timestamp_str[4:6]}-{timestamp_str[6:8]}"
-                        time_part = f"{timestamp_str[8:10]}:{timestamp_str[10:12]}:{timestamp_str[12:14]}"
-                        readable_date = f"{date_part} {time_part}"
-                    else:
-                        readable_date = timestamp_str
-                    
-                    blog_name = ' '.join(parts[1:-1]).replace('_', '.')
-                    post_info = parts[-1]
-                    
-                    display_name = f"📄 {readable_date} - {blog_name} ({post_info})"
-                else:
-                    display_name = f"📄 {file}"
-            except:
-                display_name = f"📄 {file}"
+        if saved_files:
+            # Sort files by timestamp (newest first)
+            saved_files.sort(reverse=True)
             
-            # Create download button for each file with error handling
-            try:
-                content = storage_client.download_as_text(file)
-                st.download_button(
-                    label=display_name,
-                    data=content,
-                    file_name=file,
-                    mime="text/markdown",
-                    key=f"download_{file}",
-                    use_container_width=True
-                )
-            except Exception as e:
-                st.error(f"❌ Could not load {file}: {str(e)}")
-    else:
-        st.info("No saved files yet. Run an analysis to create your first file!")
-        
-except Exception as e:
-    st.warning(f"⚠️ Storage unavailable: {str(e)}")
-    st.info("💡 Files from the current session are available in the Export section above.")
+            st.success(f"📦 {len(saved_files)} saved analysis file(s) available")
+            
+            for file in saved_files:
+                # Parse filename to show readable info
+                try:
+                    parts = file.replace('.md', '').split('_')
+                    if len(parts) >= 3:
+                        timestamp_str = parts[0]
+                        # Format: YYYYMMDD_HHMMSS -> YYYY-MM-DD HH:MM:SS
+                        if len(timestamp_str) == 14:
+                            date_part = f"{timestamp_str[:4]}-{timestamp_str[4:6]}-{timestamp_str[6:8]}"
+                            time_part = f"{timestamp_str[8:10]}:{timestamp_str[10:12]}:{timestamp_str[12:14]}"
+                            readable_date = f"{date_part} {time_part}"
+                        else:
+                            readable_date = timestamp_str
+                        
+                        blog_name = ' '.join(parts[1:-1]).replace('_', '.')
+                        post_info = parts[-1]
+                        
+                        display_name = f"📄 {readable_date} - {blog_name} ({post_info})"
+                    else:
+                        display_name = f"📄 {file}"
+                except:
+                    display_name = f"📄 {file}"
+                
+                # Create download button for each file with error handling
+                try:
+                    content = storage_client.download_as_text(file)
+                    st.download_button(
+                        label=display_name,
+                        data=content,
+                        file_name=file,
+                        mime="text/markdown",
+                        key=f"download_{file}",
+                        use_container_width=True
+                    )
+                except Exception as e:
+                    st.error(f"❌ Could not load {file}: {str(e)}")
+        else:
+            st.info("No saved files yet. Run an analysis to create your first file!")
+            
+    except Exception as e:
+        st.warning(f"⚠️ Storage unavailable: {str(e)}")
+        st.info("💡 Files from the current session are available in the Export section above.")
 
 st.divider()
 st.caption("Built with Streamlit • Powered by Claude AI via Replit AI Integrations")
