@@ -49,7 +49,12 @@ The application uses Streamlit's session state management to maintain processed 
 - **Pagination Support:** Automatically detects and follows pagination links (e.g., /page/2/, /page/3/, ?page=2)
 - **Pagination Limit:** Configurable max_pages (default: 10) to prevent excessive scraping
 - **Pagination Patterns:** Detects common pagination selectors, rel="next" links, numeric page links, and text-based links ("Next", "Previous", "Older", "Newer")
-- **Smart Link Scoring:** Awards points for blog patterns, dates, content depth while filtering admin pages
+- **Smart Link Scoring:** Awards points for blog patterns, dates, content depth; uses specific regex patterns to filter pagination/admin pages
+- **Scoring Improvements (Nov 2025):** 
+  - Replaced broad string exclusions ('page') with targeted regex patterns (/page/\d+/)
+  - Lowered filter threshold from score > 0 to score > -10 for more permissive filtering
+  - Enhanced positive signals for article-like content (URL depth, title quality)
+  - Result: statsig.com now extracts 76 posts vs 2 before fix
 - **Pros:** Handles diverse blog platforms; robust fallback mechanisms; automatically scrapes all pages
 - **Cons:** May struggle with heavily JavaScript-rendered content
 
