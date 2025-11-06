@@ -60,6 +60,7 @@ The application uses Streamlit's session state management to maintain processed 
 - **Cons:** API costs scale with post volume; ~2x cost per post due to dual analysis calls
 
 **Clustering Layer** (`embedding_cluster.py`)
+- **Status:** Currently disabled (set `ENABLE_CLUSTERING = False` in app.py)
 - **Embedding Model:** OpenAI text-embedding-3-large
 - **Clustering Algorithm:** K-means with silhouette score optimization
 - **Problem Addressed:** Grouping similar posts for pattern recognition
@@ -70,6 +71,7 @@ The application uses Streamlit's session state management to maintain processed 
 - **Edge Cases:** Handles single-post scenarios (returns single cluster)
 - **Pros:** Identifies content patterns; scalable batching; automatic topic discovery
 - **Cons:** Requires OpenAI API key; clustering quality depends on post similarity
+- **Note:** To re-enable, change `ENABLE_CLUSTERING = True` at the top of app.py
 
 **AI Cluster Labeling** (`ai_processor.py`)
 - **Purpose:** Generate meaningful labels and themes for discovered topic clusters

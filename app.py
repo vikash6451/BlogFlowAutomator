@@ -9,6 +9,9 @@ import zipfile
 import io
 import re
 
+# Configuration: Set to True to enable OpenAI embedding clustering
+ENABLE_CLUSTERING = False
+
 st.set_page_config(
     page_title="Blog Post Analyzer",
     page_icon="📚",
@@ -114,25 +117,31 @@ if st.button("🚀 Analyze Blog Posts", type="primary"):
             
             results = process_posts_batch(scraped_posts, progress_callback=update_ai_progress)
             
-            progress_bar.progress(0.7)
-            status_text.text("🔍 Discovering topic clusters using embeddings...")
-            
-            try:
-                clustering_result = cluster_blog_posts(results)
+            # Clustering section (can be enabled/disabled via ENABLE_CLUSTERING flag)
+            if ENABLE_CLUSTERING:
+                progress_bar.progress(0.7)
+                status_text.text("🔍 Discovering topic clusters using embeddings...")
                 
-                progress_bar.progress(0.85)
-                status_text.text("🏷️ Generating cluster labels...")
-                
-                cluster_metadata = generate_cluster_labels(clustering_result['clusters'])
-            except ValueError as e:
-                if "OPENAI_API_KEY" in str(e):
-                    st.warning("⚠️ Semantic clustering requires an OpenAI API key. Using AI categories instead.")
+                try:
+                    clustering_result = cluster_blog_posts(results)
+                    
+                    progress_bar.progress(0.85)
+                    status_text.text("🏷️ Generating cluster labels...")
+                    
+                    cluster_metadata = generate_cluster_labels(clustering_result['clusters'])
+                except ValueError as e:
+                    if "OPENAI_API_KEY" in str(e):
+                        st.warning("⚠️ Semantic clustering requires an OpenAI API key. Using AI categories instead.")
+                        clustering_result = None
+                        cluster_metadata = None
+                    else:
+                        raise
+                except Exception as e:
+                    st.warning(f"⚠️ Clustering failed: {str(e)}. Using AI categories instead.")
                     clustering_result = None
                     cluster_metadata = None
-                else:
-                    raise
-            except Exception as e:
-                st.warning(f"⚠️ Clustering failed: {str(e)}. Using AI categories instead.")
+            else:
+                # Clustering disabled - use AI categories only
                 clustering_result = None
                 cluster_metadata = None
             
