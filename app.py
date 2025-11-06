@@ -646,7 +646,7 @@ st.write("All previously analyzed blog reports are saved here for easy access ac
 
 try:
     storage_client = Client()
-    saved_files = [str(f) for f in storage_client.list()]
+    saved_files = [f.name for f in storage_client.list()]
     
     if saved_files:
         # Sort files by timestamp (newest first)
@@ -677,21 +677,24 @@ try:
             except:
                 display_name = f"📄 {file}"
             
-            # Create download button for each file
-            content = storage_client.download_as_text(file)
-            st.download_button(
-                label=display_name,
-                data=content,
-                file_name=file,
-                mime="text/markdown",
-                key=f"download_{file}",
-                use_container_width=True
-            )
+            # Create download button for each file with error handling
+            try:
+                content = storage_client.download_as_text(file)
+                st.download_button(
+                    label=display_name,
+                    data=content,
+                    file_name=file,
+                    mime="text/markdown",
+                    key=f"download_{file}",
+                    use_container_width=True
+                )
+            except Exception as e:
+                st.error(f"❌ Could not load {file}: {str(e)}")
     else:
         st.info("No saved files yet. Run an analysis to create your first file!")
         
 except Exception as e:
-    st.warning(f"⚠️ Persistent storage not available: {str(e)}")
+    st.warning(f"⚠️ Storage unavailable: {str(e)}")
     st.info("💡 Files from the current session are available in the Export section above.")
 
 st.divider()
