@@ -47,7 +47,8 @@ The application uses Streamlit's session state management to maintain processed 
 - **Solution:** Multi-strategy approach with header spoofing and semantic HTML selectors
 - **Pagination Support:** Automatically detects and follows pagination links (e.g., /page/2/, /page/3/, ?page=2)
 - **Pagination Limit:** Configurable max_pages (default: 10) to prevent excessive scraping
-- **Pagination Patterns:** Detects common pagination selectors, rel="next" links, and numeric page links
+- **Pagination Patterns:** Detects common pagination selectors, rel="next" links, numeric page links, and text-based links ("Next", "Previous", "Older", "Newer")
+- **Smart Link Scoring:** Awards points for blog patterns, dates, content depth while filtering admin pages
 - **Pros:** Handles diverse blog platforms; robust fallback mechanisms; automatically scrapes all pages
 - **Cons:** May struggle with heavily JavaScript-rendered content
 

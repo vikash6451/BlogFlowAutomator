@@ -134,13 +134,21 @@ def detect_pagination_links(soup: BeautifulSoup, base_url: str) -> List[str]:
                     pagination_urls.append(full_url)
                     seen.add(full_url)
     
-    # Also look for numeric links that might be pagination
+    # Look for links with pagination text patterns
+    pagination_text_patterns = ['next', 'previous', 'prev', 'older', 'newer', 'next page', 'previous page']
     for link in soup.find_all('a', href=True):
         href = link.get('href')
-        text = link.get_text(strip=True)
+        text = link.get_text(strip=True).lower()
+        
+        # Check if link text indicates pagination
+        if any(pattern in text for pattern in pagination_text_patterns):
+            full_url = urljoin(base_url, href)
+            if re.search(r'/page/\d+/?$|[?&]page=\d+', full_url) and full_url not in seen:
+                pagination_urls.append(full_url)
+                seen.add(full_url)
         
         # If link text is just a number and href contains page pattern
-        if text.isdigit() and href:
+        elif text.isdigit() and href:
             full_url = urljoin(base_url, href)
             if re.search(r'/page/\d+/?$|[?&]page=\d+', full_url) and full_url not in seen:
                 pagination_urls.append(full_url)
