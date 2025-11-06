@@ -43,9 +43,12 @@ The application uses Streamlit's session state management to maintain processed 
 **Scraping Layer** (`scraper.py`)
 - **Primary Tool:** Trafilatura for content extraction
 - **Fallback Strategy:** BeautifulSoup for cases where Trafilatura fails
-- **Problem Addressed:** Extracting clean blog content from varied HTML structures
+- **Problem Addressed:** Extracting clean blog content from varied HTML structures and following pagination
 - **Solution:** Multi-strategy approach with header spoofing and semantic HTML selectors
-- **Pros:** Handles diverse blog platforms; robust fallback mechanisms
+- **Pagination Support:** Automatically detects and follows pagination links (e.g., /page/2/, /page/3/, ?page=2)
+- **Pagination Limit:** Configurable max_pages (default: 10) to prevent excessive scraping
+- **Pagination Patterns:** Detects common pagination selectors, rel="next" links, and numeric page links
+- **Pros:** Handles diverse blog platforms; robust fallback mechanisms; automatically scrapes all pages
 - **Cons:** May struggle with heavily JavaScript-rendered content
 
 **AI Processing Layer** (`ai_processor.py`)
