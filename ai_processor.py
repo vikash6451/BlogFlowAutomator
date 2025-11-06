@@ -1,13 +1,19 @@
 import os
 from anthropic import Anthropic
 from openai import OpenAI
+import google.generativeai as genai
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception
 from typing import List, Dict
 import json
 
-# Get USE_OPENAI flag from environment (set by app.py)
-USE_OPENAI = os.environ.get("USE_OPENAI", "False").lower() == "true"
+# Get model selection from environment (set by app.py)
+# Note: These are functions so they read the env vars at runtime, not import time
+def get_use_openai():
+    return os.environ.get("USE_OPENAI", "False").lower() == "true"
+
+def get_use_gemini():
+    return os.environ.get("USE_GEMINI", "False").lower() == "true"
 
 # Claude client setup - try multiple sources for API key
 import streamlit as st
@@ -37,6 +43,14 @@ claude_client = Anthropic(
 # OpenAI client setup
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 openai_client = OpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
+
+# Gemini client setup
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
+if GEMINI_API_KEY:
+    genai.configure(api_key=GEMINI_API_KEY)
+    gemini_client = genai.GenerativeModel('gemini-2.0-flash-exp')
+else:
+    gemini_client = None
 
 
 def is_rate_limit_error(exception: BaseException) -> bool:
@@ -162,12 +176,75 @@ Respond in JSON format:
     return process_with_retry()
 
 
+def extract_deep_insights_gemini(content: str, title: str) -> Dict:
+    """Extract deep insights using Gemini API"""
+    @retry(
+        stop=stop_after_attempt(7),
+        wait=wait_exponential(multiplier=1, min=2, max=128),
+        retry=retry_if_exception(is_rate_limit_error),
+        reraise=True
+    )
+    def process_with_retry():
+        prompt = f"""Analyze this blog post and extract deep insights for brainstorming and strategic thinking:
+
+1. Key Central Takeaways: What are the 3-5 most important ideas that someone should remember from this article?
+2. Contrarian Takeaways: What are 3-5 contrarian or counterintuitive insights that challenge conventional thinking?
+3. Unstated Assumptions: What assumptions does the author make that aren't explicitly stated?
+4. Potential Experiments: What new experiments, tests, or research could be designed based on these ideas?
+5. Industry Applications: Which industries or sectors could benefit most from these insights and how?
+
+Blog Title: {title}
+Blog Content:
+{content[:6000]}
+
+Respond in JSON format:
+{{
+    "central_takeaways": ["takeaway 1", "takeaway 2", "takeaway 3"],
+    "contrarian_takeaways": ["contrarian 1", "contrarian 2", "contrarian 3"],
+    "unstated_assumptions": ["assumption 1", "assumption 2", "assumption 3"],
+    "potential_experiments": ["experiment 1", "experiment 2", "experiment 3"],
+    "industry_applications": ["industry/application 1", "industry/application 2", "industry/application 3"]
+}}"""
+
+        response = gemini_client.generate_content(
+            prompt,
+            generation_config=genai.types.GenerationConfig(
+                temperature=0.7,
+                max_output_tokens=8192,
+            )
+        )
+        
+        response_text = response.text
+        
+        try:
+            json_start = response_text.find('{')
+            json_end = response_text.rfind('}') + 1
+            if json_start != -1 and json_end > json_start:
+                response_text = response_text[json_start:json_end]
+            
+            result = json.loads(response_text)
+            return result
+        except json.JSONDecodeError:
+            return {
+                'central_takeaways': [],
+                'contrarian_takeaways': [],
+                'unstated_assumptions': [],
+                'potential_experiments': [],
+                'industry_applications': []
+            }
+    
+    return process_with_retry()
+
+
 def extract_deep_insights(content: str, title: str) -> Dict:
-    """Extract deep insights using either Claude or OpenAI based on USE_OPENAI flag"""
-    if USE_OPENAI and openai_client:
+    """Extract deep insights using Claude, OpenAI, or Gemini based on flags"""
+    if get_use_gemini() and gemini_client:
+        return extract_deep_insights_gemini(content, title)
+    elif get_use_openai() and openai_client:
         return extract_deep_insights_openai(content, title)
     else:
         return extract_deep_insights_claude(content, title)
+
 
 
 def categorize_and_summarize_post_claude(content: str, url: str, title: str) -> Dict:
@@ -282,12 +359,75 @@ Respond in JSON format:
     return process_with_retry()
 
 
+def categorize_and_summarize_post_gemini(content: str, url: str, title: str) -> Dict:
+    """Categorize and summarize using Gemini API"""
+    @retry(
+        stop=stop_after_attempt(7),
+        wait=wait_exponential(multiplier=1, min=2, max=128),
+        retry=retry_if_exception(is_rate_limit_error),
+        reraise=True
+    )
+    def process_with_retry():
+        prompt = f"""Analyze this blog post and provide:
+1. A primary category (choose ONE most relevant: Technology, Business, Marketing, Design, Development, Product, Data Science, AI/ML, DevOps, Security, Other)
+2. A concise summary (2-3 sentences)
+3. Main points (3-5 key takeaways as bullet points)
+4. Specific examples mentioned in the post (if any, 2-3 examples)
+
+Blog Title: {title}
+Blog Content:
+{content[:4000]}
+
+Respond in JSON format:
+{{
+    "category": "category name",
+    "summary": "summary text",
+    "main_points": ["point 1", "point 2", "point 3"],
+    "examples": ["example 1", "example 2"]
+}}"""
+
+        response = gemini_client.generate_content(
+            prompt,
+            generation_config=genai.types.GenerationConfig(
+                temperature=0.7,
+                max_output_tokens=8192,
+            )
+        )
+        
+        response_text = response.text
+        
+        try:
+            json_start = response_text.find('{')
+            json_end = response_text.rfind('}') + 1
+            if json_start != -1 and json_end > json_start:
+                response_text = response_text[json_start:json_end]
+            
+            result = json.loads(response_text)
+            result['url'] = url
+            result['title'] = title
+            return result
+        except json.JSONDecodeError:
+            return {
+                'category': 'Other',
+                'summary': 'Summary unavailable',
+                'main_points': [],
+                'examples': [],
+                'url': url,
+                'title': title
+            }
+    
+    return process_with_retry()
+
+
 def categorize_and_summarize_post(content: str, url: str, title: str) -> Dict:
-    """Categorize and summarize using either Claude or OpenAI based on USE_OPENAI flag"""
-    if USE_OPENAI and openai_client:
+    """Categorize and summarize using Claude, OpenAI, or Gemini based on flags"""
+    if get_use_gemini() and gemini_client:
+        return categorize_and_summarize_post_gemini(content, url, title)
+    elif get_use_openai() and openai_client:
         return categorize_and_summarize_post_openai(content, url, title)
     else:
         return categorize_and_summarize_post_claude(content, url, title)
+
 
 
 def generate_cluster_labels(clusters: Dict[int, List[Dict]]) -> Dict[int, Dict]:

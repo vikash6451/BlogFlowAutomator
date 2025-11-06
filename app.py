@@ -12,11 +12,15 @@ REPLIT_STORAGE_AVAILABLE = True
 # Configuration: Set to True to enable OpenAI embedding clustering
 ENABLE_CLUSTERING = False
 
-# Configuration: Set to True to use OpenAI for AI processing instead of Claude
+# AI Model Selection (set one to True)
+# Options: Claude (default), OpenAI (GPT-4o), or Gemini (Gemini 2.0 Flash)
+USE_CLAUDE = True
 USE_OPENAI = False
+USE_GEMINI = False
 
-# Set environment variable for ai_processor to read
+# Set environment variables for ai_processor to read
 os.environ["USE_OPENAI"] = str(USE_OPENAI)
+os.environ["USE_GEMINI"] = str(USE_GEMINI)
 
 # Import after setting environment variables
 from scraper import extract_blog_links, scrape_blog_post
@@ -32,6 +36,39 @@ st.set_page_config(
 
 st.title("📚 Blog Post Analyzer & Summarizer")
 st.write("Automate your blog research workflow: scrape, categorize, and summarize blog posts using AI")
+
+# Model Selection
+with st.expander("⚙️ AI Model Settings", expanded=False):
+    st.write("**Select the AI model to use for analysis:**")
+    
+    model_choice = st.radio(
+        "AI Model",
+        ["Claude Sonnet 4.5 (Default)", "Gemini 2.0 Flash", "OpenAI GPT-4o"],
+        index=0,
+        help="Choose which AI model to use for blog post analysis. Each model has different strengths and API costs."
+    )
+    
+    # Update environment variables based on selection
+    if model_choice == "Claude Sonnet 4.5 (Default)":
+        os.environ["USE_OPENAI"] = "False"
+        os.environ["USE_GEMINI"] = "False"
+        st.info("🤖 Using Claude Sonnet 4.5 - Requires ANTHROPIC_API_KEY environment variable")
+    elif model_choice == "Gemini 2.0 Flash":
+        os.environ["USE_OPENAI"] = "False"
+        os.environ["USE_GEMINI"] = "True"
+        st.info("🤖 Using Gemini 2.0 Flash - Requires GEMINI_API_KEY environment variable")
+    elif model_choice == "OpenAI GPT-4o":
+        os.environ["USE_OPENAI"] = "True"
+        os.environ["USE_GEMINI"] = "False"
+        st.info("🤖 Using OpenAI GPT-4o - Requires OPENAI_API_KEY environment variable")
+    
+    st.divider()
+    st.caption("""
+    **API Key Setup:**
+    - **Claude**: Set `ANTHROPIC_API_KEY` or `AI_INTEGRATIONS_ANTHROPIC_API_KEY`
+    - **Gemini**: Set `GEMINI_API_KEY`
+    - **OpenAI**: Set `OPENAI_API_KEY`
+    """)
 
 # Initialize session state
 if 'processed_data' not in st.session_state:
@@ -144,7 +181,8 @@ if st.button("🚀 Analyze Blog Posts", type="primary") or process_resume:
             else:
                 # New run - scrape links first
                 with st.spinner("Extracting blog post links..."):
-                    links = extract_blog_links(url_input)
+                    # Allow up to 50 pages of pagination to handle blogs with 300+ posts
+                    links = extract_blog_links(url_input, follow_pagination=True, max_pages=50)
                     
                     if not links:
                         st.error("No blog post links found on this page. Please check the URL.")
@@ -890,4 +928,4 @@ if REPLIT_STORAGE_AVAILABLE:
         st.info("💡 Files from the current session are available in the Export section above.")
 
 st.divider()
-st.caption("Built with Streamlit • Powered by Claude AI via Replit AI Integrations")
+st.caption("Built with Streamlit • Powered by Claude AI, Gemini AI, or OpenAI (configurable)")
