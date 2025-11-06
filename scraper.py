@@ -287,10 +287,13 @@ def extract_blog_links(listing_url: str, follow_pagination: bool = True, max_pag
         scored_links = [(link, score_link(link, listing_url)) for link in all_links]
         scored_links.sort(key=lambda x: x[1], reverse=True)
         
-        filtered_links = [link for link, score in scored_links if score > 0]
+        # More permissive threshold: allow links with score > -10 (instead of > 0)
+        # This allows legitimate posts that don't have strong positive signals
+        filtered_links = [link for link, score in scored_links if score > -10]
         
-        if len(filtered_links) < 5 and len(all_links) > 0:
-            filtered_links = [link for link, score in scored_links[:50]]
+        # Fallback: if we got very few results, take top 100 by score
+        if len(filtered_links) < 10 and len(all_links) > 0:
+            filtered_links = [link for link, score in scored_links[:100]]
         
         return filtered_links if filtered_links else all_links
     
