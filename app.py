@@ -13,16 +13,18 @@ REPLIT_STORAGE_AVAILABLE = True
 ENABLE_CLUSTERING = False
 
 # AI Model Selection (set one to True)
-# Options: Claude (default), OpenAI (GPT-4o), Gemini (Gemini 2.0 Flash), or OpenRouter (Qwen3)
+# Options: Claude (default), OpenAI (GPT-4o), Gemini (Gemini 2.0 Flash), OpenRouter (Qwen3), or Mistral (Mistral 7B)
 USE_CLAUDE = True
 USE_OPENAI = False
 USE_GEMINI = False
 USE_OPENROUTER = False
+USE_MISTRAL = False
 
 # Set environment variables for ai_processor to read
 os.environ["USE_OPENAI"] = str(USE_OPENAI)
 os.environ["USE_GEMINI"] = str(USE_GEMINI)
 os.environ["USE_OPENROUTER"] = str(USE_OPENROUTER)
+os.environ["USE_MISTRAL"] = str(USE_MISTRAL)
 
 # Import after setting environment variables
 from scraper import extract_blog_links, scrape_blog_post
@@ -45,7 +47,7 @@ with st.expander("⚙️ AI Model Settings", expanded=False):
     
     model_choice = st.radio(
         "AI Model",
-        ["Claude Sonnet 4.5 (Default)", "Gemini 2.0 Flash", "OpenAI GPT-4o", "Qwen 2.5 72B (OpenRouter)"],
+        ["Claude Sonnet 4.5 (Default)", "Gemini 2.0 Flash", "OpenAI GPT-4o", "Qwen 2.5 72B (OpenRouter)", "Mistral 7B"],
         index=0,
         help="Choose which AI model to use for blog post analysis. Each model has different strengths and API costs."
     )
@@ -55,22 +57,32 @@ with st.expander("⚙️ AI Model Settings", expanded=False):
         os.environ["USE_OPENAI"] = "False"
         os.environ["USE_GEMINI"] = "False"
         os.environ["USE_OPENROUTER"] = "False"
+        os.environ["USE_MISTRAL"] = "False"
         st.info("🤖 Using Claude Sonnet 4.5 - Requires ANTHROPIC_API_KEY environment variable")
     elif model_choice == "Gemini 2.0 Flash":
         os.environ["USE_OPENAI"] = "False"
         os.environ["USE_GEMINI"] = "True"
         os.environ["USE_OPENROUTER"] = "False"
+        os.environ["USE_MISTRAL"] = "False"
         st.info("🤖 Using Gemini 2.0 Flash - Requires GEMINI_API_KEY environment variable")
     elif model_choice == "OpenAI GPT-4o":
         os.environ["USE_OPENAI"] = "True"
         os.environ["USE_GEMINI"] = "False"
         os.environ["USE_OPENROUTER"] = "False"
+        os.environ["USE_MISTRAL"] = "False"
         st.info("🤖 Using OpenAI GPT-4o - Requires OPENAI_API_KEY environment variable")
     elif model_choice == "Qwen 2.5 72B (OpenRouter)":
         os.environ["USE_OPENAI"] = "False"
         os.environ["USE_GEMINI"] = "False"
         os.environ["USE_OPENROUTER"] = "True"
+        os.environ["USE_MISTRAL"] = "False"
         st.info("🤖 Using Qwen 2.5 72B via OpenRouter - Requires OPENROUTER_API_KEY environment variable")
+    elif model_choice == "Mistral 7B":
+        os.environ["USE_OPENAI"] = "False"
+        os.environ["USE_GEMINI"] = "False"
+        os.environ["USE_OPENROUTER"] = "False"
+        os.environ["USE_MISTRAL"] = "True"
+        st.info("🤖 Using Mistral 7B - Requires MISTRAL_API_KEY environment variable")
     
     st.divider()
     st.caption("""
@@ -79,6 +91,7 @@ with st.expander("⚙️ AI Model Settings", expanded=False):
     - **Gemini**: Set `GEMINI_API_KEY`
     - **OpenAI**: Set `OPENAI_API_KEY`
     - **OpenRouter**: Set `OPENROUTER_API_KEY` (get it from https://openrouter.ai)
+    - **Mistral**: Set `MISTRAL_API_KEY` (get it from https://console.mistral.ai)
     """)
 
 # Initialize session state
@@ -939,4 +952,4 @@ if REPLIT_STORAGE_AVAILABLE:
         st.info("💡 Files from the current session are available in the Export section above.")
 
 st.divider()
-st.caption("Built with Streamlit • Powered by Claude AI, Gemini AI, OpenAI, or OpenRouter (configurable)")
+st.caption("Built with Streamlit • Powered by Claude AI, Gemini AI, OpenAI, OpenRouter, or Mistral AI (configurable)")
